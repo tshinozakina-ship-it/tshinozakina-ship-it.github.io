@@ -33,12 +33,51 @@
 <div class="sidepanel"><section class="panel"><div class="panel-head"><div><h2>本日の運行</h2><p>2026年9月26日（土）</p></div><button class="text-btn" data-goto="schedule">全スケジュール →</button></div><div id="scheduleList"></div></section><section class="panel"><div class="panel-head"><div><h2>車両・乗務員の稼働</h2><p>提携会社のリソース状況</p></div><button class="text-btn" data-goto="fleet">詳細 →</button></div><div class="resource"><div class="resource-top"><span>大型バス</span><small>4 / 5 台</small></div><div class="bar"><span style="width:80%"></span></div></div><div class="resource"><div class="resource-top"><span>中型バス</span><small>2 / 3 台</small></div><div class="bar"><span style="width:66%"></span></div></div><div class="resource"><div class="resource-top"><span>マイクロバス</span><small>2 / 2 台</small></div><div class="bar"><span style="width:100%"></span></div></div><div class="notice"><b>✦　空き状況のお知らせ</b>10月3日（土）は大型バスの空きが残り1台です。</div></section></div></div>
 <div class="lower"><section class="mini-card"><h2>依頼から運行まで</h2><div class="flow"><div class="step"><div class="step-icon">＋</div><b>依頼</b><small>式場・お客様</small></div><div class="arrow">→</div><div class="step"><div class="step-icon">↗</div><b>受注確認</b><small>バス会社</small></div><div class="arrow">→</div><div class="step"><div class="step-icon">▱</div><b>乗務員・車両</b><small>手配・確定</small></div><div class="arrow">→</div><div class="step"><div class="step-icon">✓</div><b>運行完了</b><small>実績を共有</small></div></div></section><section class="mini-card"><h2>最近の更新</h2><div class="activity"><span class="dot"></span><p><b>東都観光バス</b> が「青山迎賓館」の依頼を受注しました<small>10分前 · 乗務員の割当待ち</small></p></div><div class="activity"><span class="dot" style="background:#c3a168"></span><p><b>お客様 山本様</b> が乗車場所を更新しました<small>32分前 · プランナーへ通知済み</small></p></div><div class="activity"><span class="dot" style="background:#92aabd"></span><p><b>ホテル椿山荘東京</b> の運行が完了しました<small>1時間前 · 実績を確認できます</small></p></div></section></div>
 </div></main></div>
-<div class="modal-back" id="modal"><div class="modal"><div class="modal-head"><h2>送迎を依頼する</h2><button class="close" id="close">×</button></div><form id="requestForm"><div class="form-grid"><div class="field"><label>式場・案件名 *</label><input name="venue" placeholder="例：青山迎賓館" required></div><div class="field"><label>ご担当者 *</label><input name="contact" placeholder="例：田中様" required></div><div class="field"><label>運行日 *</label><input name="date" type="date" value="2026-10-03" required></div><div class="field"><label>出発時刻 *</label><input name="time" type="time" value="10:00" required></div><div class="field"><label>乗車場所 *</label><input name="from" placeholder="例：東京駅 丸の内口" required></div><div class="field"><label>降車場所 *</label><input name="to" placeholder="例：式場正面玄関" required></div><div class="field"><label>希望車種</label><select name="vehicle"><option>大型バス</option><option>中型バス</option><option>マイクロバス</option></select></div><div class="field"><label>台数</label><select name="count"><option>1台</option><option>2台</option><option>3台</option></select></div><div class="field full"><label>ご要望・連絡事項</label><textarea name="notes" placeholder="往復運行、乗車人数など"></textarea></div></div><div class="modal-actions"><button type="button" class="secondary" id="cancel">キャンセル</button><button type="submit" class="primary">依頼内容を送信</button></div></form></div></div><div class="toast" id="toast"></div>
+<div class="modal-back" id="modal"><div class="modal"><div class="modal-head"><h2>送迎を依頼する</h2><button class="close" id="close">×</button></div><form id="requestForm"><div class="form-grid"><div class="field">
+  <label>式場・案件名</label>
+  <select name="venue">
+    <option value="">式場を選択してください</option>
+    <option value="ザ・セントラルパーク小倉">ザ・セントラルパーク小倉</option>
+    <option value="アルカディア小倉">アルカディア小倉</option>
+    <option value="クアンティック">クアンティック</option>
+    <option value="青山迎賓館">青山迎賓館</option>
+    <option value="ホテル椿山荘東京">ホテル椿山荘東京</option>
+  </select>
+<div class="field">
+  <label>ご担当者 *</label>
+  <select name="contact" required>
+    <option value="">担当者を選択してください</option>
+    <option value="松原">松原</option>
+    <option value="川島">川島</option>
+    <option value="田中">田中</option>
+    <option value="宮崎">宮崎</option>
+  </select>
+<div class="field">
+<label>運行日 *</label>
+<select name="date" required>
+<option value="">日付を選択してください</option>
+<option value="2026-09-26">2026年9月26日</option>
+<option value="2026-09-27">2026年9月27日</option>
+<option value="2026-09-28">2026年9月28日</option>
+<option value="2026-09-29">2026年9月29日</option>
+<option value="2026-09-30">2026年9月30日</option>
+<option value="2026-10-01">2026年10月1日</option>
+<option value="2026-10-02">2026年10月2日</option>
+<option value="2026-10-03">2026年10月3日</option>
+<option value="2026-10-04">2026年10月4日</option>
+<option value="2026-10-05">2026年10月5日</option>
+<option value="2026-10-06">2026年10月6日</option>
+<option value="2026-10-07">2026年10月7日</option>
+<option value="2026-10-08">2026年10月8日</option>
+<option value="2026-10-09">2026年10月9日</option>
+<option value="2026-10-10">2026年10月10日</option>
+</select>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 const SUPABASE_URL='https://stjjaxsscdyaxvdngtlh.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_XJXmcJFdkStUjqRhqsoIdw_pYeXXW56';
 const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);const initial=[
-{venue:'青山迎賓館',contact:'田中様',date:'2026-09-26',time:'09:30',from:'東京駅',to:'青山迎賓館',vehicle:'大型バス',count:'2台',status:'pending',company:'東都観光バス',id:'WD-0926-01'},
+{venue:'ザ・セントラルパーク小倉',contact:'田中様',date:'2026-09-26',time:'09:30',from:'東京駅',to:'青山迎賓館',vehicle:'大型バス',count:'2台',status:'pending',company:'東都観光バス',id:'WD-0926-01'},
 {venue:'ホテル椿山荘東京',contact:'鈴木様',date:'2026-09-26',time:'10:15',from:'池袋駅',to:'椿山荘',vehicle:'中型バス',count:'1台',status:'accepted',company:'さくら交通',id:'WD-0926-02'},
 {venue:'アニヴェルセル表参道',contact:'山本様',date:'2026-09-26',time:'11:00',from:'表参道駅',to:'式場正面',vehicle:'マイクロバス',count:'1台',status:'arrange',company:'日の丸自動車',id:'WD-0926-03'},
 {venue:'八芳園',contact:'高橋様',date:'2026-09-26',time:'12:30',from:'品川駅',to:'八芳園',vehicle:'大型バス',count:'1台',status:'accepted',company:'東都観光バス',id:'WD-0926-04'},
