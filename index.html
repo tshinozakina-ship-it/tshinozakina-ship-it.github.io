@@ -76,6 +76,60 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 const SUPABASE_URL='https://stjjaxsscdyaxvdngtlh.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_XJXmcJFdkStUjqRhqsoIdw_pYeXXW56';
+document.getElementById('signupBtn').onclick=async()=>{
+  const email=document.getElementById('authEmail').value.trim();
+  const password=document.getElementById('authPassword').value;
+  const msg=document.getElementById('authMessage');
+
+  if(!email||!password){
+    msg.textContent='メールアドレスとパスワードを入力してください。';
+    return;
+  }
+
+  if(password.length<6){
+    msg.textContent='パスワードは6文字以上にしてください。';
+    return;
+  }
+
+  msg.textContent='登録しています…';
+
+  const {data,error}=await supabaseClient.auth.signUp({
+    email:email,
+    password:password
+  });
+
+  if(error){
+    msg.textContent='登録エラー：'+error.message;
+    return;
+  }
+
+  msg.textContent='新規登録しました。確認メールを確認してください。';
+};
+
+document.getElementById('loginBtn').onclick=async()=>{
+  const email=document.getElementById('authEmail').value.trim();
+  const password=document.getElementById('authPassword').value;
+  const msg=document.getElementById('authMessage');
+
+  if(!email||!password){
+    msg.textContent='メールアドレスとパスワードを入力してください。';
+    return;
+  }
+
+  msg.textContent='ログインしています…';
+
+  const {error}=await supabaseClient.auth.signInWithPassword({
+    email:email,
+    password:password
+  });
+
+  if(error){
+    msg.textContent='ログインエラー：'+error.message;
+    return;
+  }
+
+  document.getElementById('authPanel').style.display='none';
+};  
 const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);const initial=[
 {venue:'ザ・セントラルパーク小倉',contact:'田中様',date:'2026-09-26',time:'09:30',from:'東京駅',to:'青山迎賓館',vehicle:'大型バス',count:'2台',status:'pending',company:'東都観光バス',id:'WD-0926-01'},
 {venue:'ホテル椿山荘東京',contact:'鈴木様',date:'2026-09-26',time:'10:15',from:'池袋駅',to:'椿山荘',vehicle:'中型バス',count:'1台',status:'accepted',company:'さくら交通',id:'WD-0926-02'},
