@@ -1,0 +1,10 @@
+manifest.json
+{
+  "name": "WEDRIVE",
+  "short_name": "WEDRIVE",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7f8f5",
+  "theme_color": "#24352f",
+  "orientation": "portrait"
+}
