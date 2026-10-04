@@ -133,6 +133,44 @@
 </div>
 
 </form>
+<div class="modal-back" id="assignmentModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>車両・乗務員を割り当てる</h2>
+      <button class="close" id="assignmentClose">×</button>
+    </div>
+    <form id="assignmentForm">
+      <input type="hidden" id="assignmentOrderId">
+
+      <div class="field">
+        <label>車両 *</label>
+        <select id="assignmentVehicle" required>
+          <option value="">車両を選択してください</option>
+          <option value="大型バス 101号">大型バス 101号</option>
+          <option value="大型バス 102号">大型バス 102号</option>
+          <option value="中型バス 201号">中型バス 201号</option>
+          <option value="マイクロバス 301号">マイクロバス 301号</option>
+        </select>
+      </div>
+
+      <div class="field" style="margin-top:13px">
+        <label>乗務員 *</label>
+        <select id="assignmentDriver" required>
+          <option value="">乗務員を選択してください</option>
+          <option value="佐藤 一郎">佐藤 一郎</option>
+          <option value="田中 健一">田中 健一</option>
+          <option value="鈴木 誠">鈴木 誠</option>
+          <option value="山本 大輔">山本 大輔</option>
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="secondary" id="assignmentCancel">キャンセル</button>
+        <button type="submit" class="primary">手配を確定する</button>
+      </div>
+    </form>
+  </div>
+</div>  
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 const SUPABASE_URL='https://stjjaxsscdyaxvdngtlh.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_XJXmcJFdkStUjqRhqsoIdw_pYeXXW56';
@@ -199,8 +237,26 @@ const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY
 let orders=initial;let activeFilter='all';let role=document.getElementById('role');const statusLabel={pending:'確認待ち',accepted:'手配済み',arrange:'乗務員割当',done:'運行完了'};const statusClass={pending:'p-pending',accepted:'p-accepted',arrange:'p-arrange',done:'p-done'};
 function save(){localStorage.setItem('wedriveOrders',JSON.stringify(orders))}function render(){let visible=orders.filter(o=>activeFilter==='all'||(activeFilter==='pending'?['pending','arrange'].includes(o.status):o.status==='accepted'));document.getElementById('ordersBody').innerHTML=visible.map((o,i)=>`<tr><td><div class="venue">${esc(o.venue)}</div><div class="order-id">${o.id} · ${esc(o.contact||'')}</div></td><td>${o.date.slice(5).replace('-','/')}<div class="order-id">${o.time} 発</div></td><td>${esc(o.from)} → ${esc(o.to)}<div class="order-id">${esc(o.vehicle)}</div></td><td>${esc(o.count)}</td><td><span class="pill ${statusClass[o.status]}">${statusLabel[o.status]}</span></td><td>${o.status==='pending'?`<button class="action" data-accept="${o.id}">${role.value==='バス会社'?'受注する':'詳細を見る'}</button>`:o.status==='arrange'?'<button class="action" data-assign="'+o.id+'">車両を割当</button>':''}</td></tr>`).join('')||'<tr><td colspan="6" class="muted" style="text-align:center;padding:25px">該当する依頼はありません</td></tr>';document.getElementById('navCount').textContent=orders.filter(o=>o.status==='pending'||o.status==='arrange').length;document.getElementById('mTrips').innerHTML=orders.filter(o=>o.date==='2026-09-26').length+7+'<span>便</span>';document.getElementById('mPending').innerHTML=orders.filter(o=>o.status==='pending'||o.status==='arrange').length+'<span>件</span>';document.getElementById('mReady').innerHTML=orders.filter(o=>o.status==='accepted'||o.status==='done').length+7+'<span>便</span>';document.getElementById('scheduleList').innerHTML=orders.filter(o=>o.date==='2026-09-26').slice(0,4).map((o,i)=>`<div class="schedule"><div class="time">${o.time}</div><div class="event ${['','gold','blue','rose'][i%4]}"><b>${esc(o.venue)}</b><small>${esc(o.from)} 発　·　${esc(o.vehicle)} ${esc(o.count)}</small></div></div>`).join('');}
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2600)}
-document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');activeFilter=b.dataset.filter;render()});document.getElementById('ordersBody').onclick=e=>{let a=e.target.closest('[data-accept]'),d=e.target.closest('[data-assign]');if(a){let o=orders.find(x=>x.id===a.dataset.accept);if(role.value==='バス会社'){o.status='accepted';o.company='東都観光バス';save();render();toast('依頼を受注しました。車両と乗務員を手配してください。')}else toast('依頼詳細を表示しています')}if(d){let o=orders.find(x=>x.id===d.dataset.assign);o.status='accepted';save();render();toast('車両・乗務員の手配を確定しました')}};
-const modal=document.getElementById('modal');document.getElementById('newRequest').onclick=()=>modal.classList.add('show');document.getElementById('close').onclick=()=>modal.classList.remove('show');modal.onclick=e=>{if(e.target===modal)modal.classList.remove('show')};document.getElementById('requestForm').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target),n=orders.length+1;orders.unshift({venue:f.get('venue'),contact:f.get('contact'),date:f.get('date'),time:f.get('time'),from:f.get('from'),to:f.get('to'),vehicle:f.get('vehicle'),count:f.get('count'),status:'pending',company:'',id:'WD-'+f.get('date').slice(5).replace('-','')+'-'+String(n).padStart(2,'0')});save();render();modal.classList.remove('show');e.target.reset();toast('送迎依頼を登録しました。提携バス会社へ通知されます。')};
+document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');activeFilter=b.dataset.filter;render()});document.getElementById('ordersBody').onclick=e=>{let a=e.target.closest('[data-accept]'),d=e.target.closest('[data-assign]');if(a){let o=orders.find(x=>x.id===a.dataset.accept);if(role.value==='バス会社'){o.status='accepted';o.company='東都観光バス';save();render();toast('依頼を受注しました。車両と乗務員を手配してください。')}else toast('依頼詳細を表示しています')}if(d){document.getElementById('assignmentOrderId').value=d.dataset.assign;document.getElementById('assignmentModal').classList.add('show')}};
+const assignmentModal=document.getElementById('assignmentModal');
+const assignmentForm=document.getElementById('assignmentForm');
+document.getElementById('assignmentClose').onclick=()=>assignmentModal.classList.remove('show');
+document.getElementById('assignmentCancel').onclick=()=>assignmentModal.classList.remove('show');
+assignmentModal.onclick=e=>{if(e.target===assignmentModal)assignmentModal.classList.remove('show')};
+assignmentForm.onsubmit=e=>{
+  e.preventDefault();
+  let o=orders.find(x=>x.id===document.getElementById('assignmentOrderId').value);
+  if(!o)return;
+  o.assignedVehicle=document.getElementById('assignmentVehicle').value;
+  o.driver=document.getElementById('assignmentDriver').value;
+  o.status='accepted';
+  save();
+  render();
+  assignmentModal.classList.remove('show');
+  e.target.reset();
+  toast('車両・乗務員の手配を確定しました');
+};
+  const modal=document.getElementById('modal');document.getElementById('newRequest').onclick=()=>modal.classList.add('show');document.getElementById('close').onclick=()=>modal.classList.remove('show');modal.onclick=e=>{if(e.target===modal)modal.classList.remove('show')};document.getElementById('requestForm').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target),n=orders.length+1;orders.unshift({venue:f.get('venue'),contact:f.get('contact'),date:f.get('date'),time:f.get('time'),from:f.get('from'),to:f.get('to'),vehicle:f.get('vehicle'),count:f.get('count'),status:'pending',company:'',id:'WD-'+f.get('date').slice(5).replace('-','')+'-'+String(n).padStart(2,'0')});save();render();modal.classList.remove('show');e.target.reset();toast('送迎依頼を登録しました。提携バス会社へ通知されます。')};
 role.onchange=()=>{let r=role.value;document.getElementById('profileRole').textContent=r;document.getElementById('welcomeText').textContent=({ '運行管理スタッフ':'本日の運行状況をお知らせします。安全で心地よい一日を。','式場プランナー':'担当する婚礼の送迎状況とお客様情報を確認できます。','バス会社':'新しいご依頼を確認し、車両・乗務員を手配しましょう。','お客様':'大切な一日の送迎内容を確認・依頼できます。'})[r];document.getElementById('newRequest').textContent=r==='バス会社'?'＋　依頼を確認する':'＋　送迎を依頼する';document.getElementById('greeting').textContent=({'お客様':'ご結婚おめでとうございます','式場プランナー':'担当婚礼の送迎状況','バス会社':'おはようございます、東都観光バス様','運行管理スタッフ':'おはようございます、佐藤さん'})[r];render()};document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');let p=b.dataset.page;if(p){document.getElementById('crumb').textContent=b.innerText.trim();if(p==='orders'){document.getElementById('ordersTitle').textContent='送迎依頼一覧';document.querySelector('.filters').style.display='flex';document.querySelector('.panel').scrollIntoView({behavior:'smooth',block:'center'})}else if(p==='schedule'||p==='fleet'){document.querySelectorAll('.panel')[1].scrollIntoView({behavior:'smooth',block:'center'});toast(p==='schedule'?'本日の運行スケジュールを表示しています':'提携会社の車両・乗務員状況を表示しています')}else if(p!=='overview')toast(b.innerText.trim()+'を表示しています')}});document.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>toast(b.dataset.goto==='schedule'?'本日の運行スケジュールを表示しています':'稼働リソースの詳細を表示しています'));document.getElementById('today').textContent='2026年9月26日（土）';render();
 (async()=>{const {data:{session}}=await supabaseClient.auth.getSession();
 if(session){
