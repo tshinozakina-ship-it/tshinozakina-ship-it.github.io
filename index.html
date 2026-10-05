@@ -250,6 +250,7 @@ document.getElementById('ordersBody').onclick=e=>{
 document.addEventListener('click',e=>{
   const d=e.target.closest('[data-assign]');
   if(!d)return;
+  document.getElementById('modal').classList.remove('show');
   document.getElementById('assignmentOrderId').value=d.dataset.assign;
   document.getElementById('assignmentModal').classList.add('show');
 });  
