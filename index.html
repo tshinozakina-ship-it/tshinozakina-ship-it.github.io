@@ -257,7 +257,7 @@ document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySel
 
  
 
-  const assignmentModal=document.getElementById('assignmentModal');const assignmentId=new URLSearchParams(location.search).get('assign');if(assignmentId){document.getElementById('assignmentOrderId').value=assignmentId;assignmentModal.classList.add('show');}
+  const assignmentModal=document.getElementById('assignmentModal');document.body.appendChild(assignmentModal);const assignmentId=new URLSearchParams(location.search).get('assign');if(assignmentId){document.getElementById('assignmentOrderId').value=assignmentId;assignmentModal.classList.add('show');}
 const assignmentForm=document.getElementById('assignmentForm');
 document.getElementById('assignmentClose').onclick=()=>{assignmentModal.classList.remove('show');history.replaceState(null,'',location.pathname+location.search)};
 document.getElementById('assignmentCancel').onclick=()=>{assignmentModal.classList.remove('show');history.replaceState(null,'',location.pathname+location.search)};
