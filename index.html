@@ -287,7 +287,7 @@ document.getElementById('loginBtn').onclick=async()=>{
     return;
   }
 
-  document.getElementById('authPanel').style.display='none';
+  await initializeApp();
 };  
 const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);const initial=[];
 const sampleIds=['WD-0926-01','WD-0926-02','WD-0926-03','WD-0926-04','WD-0927-01'];
