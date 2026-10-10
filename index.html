@@ -351,3 +351,31 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  if(appUser)void refreshChatBadges();supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(()=>void refreshChatBadges(),0)});
 })();
 </script>
+
+<script>
+(()=>{
+ const css=document.createElement('style');
+ css.textContent='.wedrive-phone-list{display:grid;gap:5px;margin-top:7px;font-size:14px;white-space:normal}.wedrive-phone-list a{color:#315e4c;font-weight:600;text-decoration:underline;text-underline-offset:2px}';
+ document.head.appendChild(css);
+ const wrap=render;
+ function addPhoneLinks(){
+  document.querySelectorAll('#ordersBody tr').forEach(row=>{
+   const venue=row.querySelector('.venue'),cell=row.cells[0];
+   if(!venue||!cell||cell.querySelector('.wedrive-phone-list'))return;
+   const box=document.createElement('div');box.className='wedrive-phone-list';
+   const name=venue.textContent||'';
+   if(/CENTRAL\s*PARK|セントラルパーク|CPK/i.test(name)){
+    const label=document.createElement('span');label.textContent='式場 TEL：';
+    const link=document.createElement('a');link.href='tel:0933833920';link.textContent='093-383-3920';
+    const line=document.createElement('div');line.append(label,link);box.appendChild(line);
+   }
+   const label=document.createElement('span');label.textContent='バス会社（株式会社 忠助）TEL：';
+   const link=document.createElement('a');link.href='tel:0925524451';link.textContent='092-552-4451（テスト）';
+   const line=document.createElement('div');line.append(label,link);box.appendChild(line);
+   cell.appendChild(box);
+  });
+ }
+ render=function(){wrap();addPhoneLinks()};
+ addPhoneLinks();
+})();
+</script>
