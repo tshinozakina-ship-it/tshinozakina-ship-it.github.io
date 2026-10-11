@@ -400,3 +400,68 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  placePhoneNumbers();
 })();
 </script>
+
+
+<!-- Role-specific contact numbers in each request, directly below chat. -->
+<script>
+(() => {
+  const body = document.getElementById('ordersBody');
+  if (!body) return;
+  function updateContactNumbers() {
+    body.querySelectorAll('tr').forEach(row => {
+      const venue = row.querySelector('.venue');
+      const actions = row.lastElementChild;
+      if (!venue || !actions) return;
+      const currentRole = window.role?.value || '';
+      const isCentralPark = /CENTRAL\s*PARK|セントラルパーク|CPK/i.test(venue.textContent || '');
+      const showVenue = currentRole === 'バス会社' || (currentRole !== '式場プランナー' && isCentralPark);
+      const showBus = currentRole !== 'バス会社';
+      let box = row.querySelector('.wedrive-phone-list');
+      if (!showVenue && !showBus) {
+        if (box) box.remove();
+        return;
+      }
+      if (!box) {
+        box = document.createElement('div');
+        box.className = 'wedrive-phone-list';
+      }
+      const desiredContents = currentRole + ':' + showVenue + ':' + showBus;
+      if (box.dataset.phoneRole !== desiredContents) {
+        box.replaceChildren();
+        box.style.cssText = 'margin-top:8px;display:flex;flex-direction:column;gap:5px;font-size:13px;line-height:1.5';
+        const addContact = (label, phone, href) => {
+          const line = document.createElement('div');
+          line.style.cssText = 'overflow-wrap:anywhere';
+          line.append(document.createTextNode(label + '：'));
+          const link = document.createElement('a');
+          link.href = href;
+          link.textContent = phone;
+          link.style.cssText = 'color:#315e4c;font-weight:700;text-decoration:underline;';
+          line.appendChild(link);
+          box.appendChild(line);
+        };
+        if (showVenue) addContact('式場', '093-383-3920', 'tel:0933833920');
+        if (showBus) addContact('バス会社（株式会社 忠助）', '092-552-4451（テスト）', 'tel:0925524451');
+        box.dataset.phoneRole = desiredContents;
+      }
+      const chat = actions.querySelector('[data-chat]');
+      const action = chat || actions.querySelector('button, a');
+      if (action) {
+        if (action.nextElementSibling !== box) action.after(box);
+      } else if (box.parentElement !== actions) {
+        actions.appendChild(box);
+      }
+    });
+  }
+  const previousRender = window.render;
+  if (typeof previousRender === 'function') {
+    window.render = function (...args) {
+      const result = previousRender.apply(this, args);
+      updateContactNumbers();
+      return result;
+    };
+  }
+  new MutationObserver(updateContactNumbers).observe(body, { childList: true, subtree: true });
+  updateContactNumbers();
+})();
+</script>
