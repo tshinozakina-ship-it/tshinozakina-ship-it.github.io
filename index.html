@@ -379,3 +379,24 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  addPhoneLinks();
 })();
 </script>
+
+<script>
+(()=>{
+ const body=document.getElementById('ordersBody');
+ if(!body)return;
+ const placePhoneNumbers=()=>{
+  body.querySelectorAll('tr').forEach(row=>{
+   const phones=row.querySelector('.wedrive-phone-list'),actions=row.lastElementChild;
+   if(!phones||!actions)return;
+   const chat=actions.querySelector('[data-chat]');
+   const action=chat||actions.querySelector('.action:last-of-type');
+   if(action){if(action.nextElementSibling!==phones)action.after(phones)}
+   else if(phones.parentElement!==actions)actions.appendChild(phones);
+  });
+ };
+ const previousRender=render;
+ render=function(){previousRender();placePhoneNumbers()};
+ new MutationObserver(placePhoneNumbers).observe(body,{childList:true,subtree:true});
+ placePhoneNumbers();
+})();
+</script>
