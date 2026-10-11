@@ -445,7 +445,7 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
         box.dataset.phoneRole = desiredContents;
       }
       const chat = actions.querySelector('[data-chat]');
-      const action = chat || actions.querySelector('button, a');
+      const action = chat || actions.querySelector('.action:last-of-type');
       if (action) {
         if (action.nextElementSibling !== box) action.after(box);
       } else if (box.parentElement !== actions) {
