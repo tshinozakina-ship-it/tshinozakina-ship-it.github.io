@@ -465,3 +465,18 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
   updateContactNumbers();
 })();
 </script>
+<script>
+(()=>{
+  const toolbar=document.querySelector('.top-right');
+  if(!toolbar||document.getElementById('logoutBtn'))return;
+  const button=document.createElement('button');
+  button.id='logoutBtn';button.type='button';button.textContent='ログアウト';button.hidden=true;
+  button.style.cssText='border:1px solid #dce4dd;background:#fff;color:#315e4c;border-radius:8px;padding:10px 13px;min-height:42px;font-weight:700;white-space:nowrap';
+  toolbar.appendChild(button);
+  const sync=async()=>{const {data}=await supabaseClient.auth.getSession();button.hidden=!data.session;};
+  void sync();
+  supabaseClient.auth.onAuthStateChange((_event,session)=>{button.hidden=!session;});
+  button.onclick=async()=>{button.disabled=true;const {error}=await supabaseClient.auth.signOut();if(error){button.disabled=false;alert('ログアウトできませんでした。もう一度お試しください。');return;}location.reload();};
+})();
+</script>
+</script>
