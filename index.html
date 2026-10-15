@@ -636,3 +636,87 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
   }
 })();
 </script>
+
+  
+<script>
+(() => {
+  const content = document.querySelector('.content');
+  const box = document.getElementById('resourceWorkspace');
+  const side = document.querySelector('.side');
+  const roleSelect = document.getElementById('role');
+  const logout = document.getElementById('logoutBtn');
+  const crumb = document.getElementById('crumb');
+  if (!content || !box || !side || !roleSelect || !logout || !crumb) return;
+
+  const oldRequest = document.getElementById('newRequest');
+  const oldActions = oldRequest && oldRequest.parentElement.classList.contains('welcome-admin-actions') ? oldRequest.parentElement : null;
+  if (oldActions) { oldActions.before(oldRequest); oldActions.remove(); }
+  document.getElementById('adminResourcesNav')?.remove();
+  document.getElementById('openAdminResources')?.remove();
+  document.getElementById('closeAdminResources')?.remove();
+  content.classList.remove('admin-resources-page');
+
+  let pageOpen = false;
+  const title = '会社・車両・乗務員の登録';
+  const isAdmin = () => !roleSelect.disabled && roleSelect.style.visibility !== 'hidden' && !logout.hidden;
+  const nav = document.createElement('button');
+  nav.type = 'button'; nav.id = 'adminResourcesNav'; nav.className = 'nav';
+  nav.innerHTML = '<span class="ico">⚙</span>会社・車両・乗務員の登録';
+  nav.hidden = true;
+  const label = Array.from(side.querySelectorAll('.nav-label')).find(el => el.textContent.trim() === 'MANAGEMENT');
+  if (label) label.after(nav);
+
+  const button = document.createElement('button');
+  button.type = 'button'; button.id = 'openAdminResources'; button.className = 'secondary';
+  button.textContent = '⚙ 会社・車両・乗務員の登録'; button.hidden = true;
+  const actionGroup = document.createElement('div'); actionGroup.className = 'welcome-admin-actions';
+  if (oldRequest) { oldRequest.after(actionGroup); actionGroup.append(oldRequest, button); }
+
+  const back = document.createElement('button');
+  back.type = 'button'; back.id = 'closeAdminResources'; back.className = 'secondary';
+  back.textContent = '← ダッシュボードへ戻る';
+  box.querySelector('.panel-head')?.append(back);
+  const description = box.querySelector('.panel-head p');
+  if (description) description.textContent = '管理者専用ページです。会社、車両、乗務員、利用者の役割を登録できます。';
+
+  const style = document.createElement('style');
+  style.textContent = '.content.admin-resources-page{min-height:calc(100vh - 76px)}.content.admin-resources-page>:not(#resourceWorkspace){display:none!important}#resourceWorkspace{width:100%;margin:0!important}.welcome-admin-actions{display:flex;gap:10px;align-items:center}#openAdminResources{min-height:50px;padding:12px 16px;border:1px solid #9ab6a1;background:#edf4ee;color:#245b43;border-radius:10px;font-weight:700;font-size:15px;white-space:normal}#closeAdminResources{min-height:46px;font-size:14px;white-space:nowrap}@media(max-width:1000px){.welcome-admin-actions{display:grid;grid-template-columns:1fr;width:100%;gap:8px}#openAdminResources{width:100%;min-height:56px;font-size:17px}#closeAdminResources{width:100%;min-height:50px}}';
+  document.head.append(style);
+
+  function showPage(open) {
+    if (open && !isAdmin()) return;
+    pageOpen = open;
+    content.classList.toggle('admin-resources-page', open);
+    box.hidden = !(isAdmin() && open);
+    nav.classList.toggle('active', open);
+    if (open) {
+      side.querySelectorAll('.nav').forEach(item => item.classList.toggle('active', item === nav));
+      crumb.textContent = title;
+      if (typeof window.wedriveRefreshSetup === 'function') void window.wedriveRefreshSetup();
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    } else crumb.textContent = 'ダッシュボード';
+  }
+  function updateAccess() {
+    const allowed = isAdmin();
+    nav.hidden = !allowed; button.hidden = !allowed;
+    if (!allowed && pageOpen) showPage(false);
+    else box.hidden = !(allowed && pageOpen);
+  }
+  button.onclick = () => showPage(true);
+  nav.onclick = () => showPage(true);
+  back.onclick = () => showPage(false);
+  document.addEventListener('click', event => {
+    const item = event.target instanceof Element ? event.target.closest('.side .nav') : null;
+    if (pageOpen && item && item !== nav) showPage(false);
+  }, true);
+  new MutationObserver(() => {
+    const mustHide = !(isAdmin() && pageOpen);
+    if (box.hidden !== mustHide) box.hidden = mustHide;
+  }).observe(box, {attributes:true, attributeFilter:['hidden']});
+  new MutationObserver(updateAccess).observe(roleSelect, {attributes:true, attributeFilter:['disabled','style']});
+  new MutationObserver(updateAccess).observe(logout, {attributes:true, attributeFilter:['hidden']});
+  document.addEventListener('change', event => { if (event.target === roleSelect) updateAccess(); });
+  if (typeof supabaseClient !== 'undefined') supabaseClient.auth.onAuthStateChange(() => setTimeout(updateAccess, 0));
+  updateAccess();
+})();
+</script>
