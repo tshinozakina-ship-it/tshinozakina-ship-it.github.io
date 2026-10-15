@@ -526,3 +526,113 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
 })();
 </script>
 </script>
+
+  
+<script>
+(() => {
+  const adminRole = '運行管理スタッフ';
+  const content = document.querySelector('.content');
+  const box = document.getElementById('resourceWorkspace');
+  const side = document.querySelector('.side');
+  const crumb = document.getElementById('crumb');
+  if (!content || !box || !side || !crumb) return;
+
+  let resourcePageOpen = false;
+  const pageTitle = '会社・車両・乗務員の登録';
+  const navButton = document.createElement('button');
+  navButton.type = 'button';
+  navButton.id = 'adminResourcesNav';
+  navButton.className = 'nav';
+  navButton.innerHTML = '<span class="ico">⚙</span>会社・車両・乗務員の登録';
+  navButton.hidden = true;
+  const managementLabel = Array.from(side.querySelectorAll('.nav-label')).find(x => x.textContent.trim() === 'MANAGEMENT');
+  if (managementLabel) managementLabel.after(navButton);
+
+  const openButton = document.createElement('button');
+  openButton.type = 'button';
+  openButton.id = 'openAdminResources';
+  openButton.className = 'secondary';
+  openButton.textContent = '⚙ 会社・車両・乗務員の登録';
+  openButton.hidden = true;
+  const actions = document.createElement('div');
+  actions.className = 'welcome-admin-actions';
+  const requestButton = document.getElementById('newRequest');
+  requestButton.after(actions);
+  actions.append(requestButton, openButton);
+
+  const backButton = document.createElement('button');
+  backButton.type = 'button';
+  backButton.className = 'secondary';
+  backButton.id = 'closeAdminResources';
+  backButton.textContent = '← ダッシュボードへ戻る';
+  const panelHead = box.querySelector('.panel-head');
+  const description = box.querySelector('.panel-head p');
+  if (panelHead) panelHead.append(backButton);
+  if (description) description.textContent = '管理者専用ページです。会社、車両、乗務員、利用者の役割を登録できます。';
+
+  const style = document.createElement('style');
+  style.textContent = '
+    [hidden]{display:none!important}
+    .content.admin-resources-page{min-height:calc(100vh - 76px)}
+    .content.admin-resources-page>:not(#resourceWorkspace){display:none!important}
+    #resourceWorkspace{width:100%;margin:0!important}
+    #adminResourcesNav{line-height:1.45}
+    .welcome-admin-actions{display:flex;gap:10px;align-items:center}
+    #openAdminResources{min-height:50px;padding:12px 16px;border:1px solid #9ab6a1;background:#edf4ee;color:#245b43;border-radius:10px;font-weight:700;font-size:15px;white-space:normal}
+    #closeAdminResources{min-height:46px;font-size:14px;white-space:nowrap}
+    @media(max-width:1000px){.welcome-admin-actions{display:grid;grid-template-columns:1fr;width:100%;gap:8px}#openAdminResources{width:100%;min-height:56px;font-size:17px}#closeAdminResources{width:100%;min-height:50px}}
+  ';
+  document.head.append(style);
+
+  function isAdmin() { return typeof appRole !== 'undefined' && appRole === adminRole; }
+  function syncAccess() {
+    const allowed = isAdmin();
+    navButton.hidden = !allowed;
+    openButton.hidden = !allowed;
+    if (!allowed && resourcePageOpen) showResourcePage(false);
+    box.hidden = !(allowed && resourcePageOpen);
+  }
+  function showResourcePage(open) {
+    if (open && !isAdmin()) { toast('このページは管理者専用です'); return; }
+    resourcePageOpen = open;
+    content.classList.toggle('admin-resources-page', open);
+    box.hidden = !open;
+    navButton.classList.toggle('active', open);
+    if (open) {
+      document.querySelectorAll('.side .nav').forEach(button => button.classList.toggle('active', button === navButton));
+      crumb.textContent = pageTitle;
+      if (typeof wedriveRefreshSetup === 'function') void wedriveRefreshSetup();
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    } else {
+      crumb.textContent = 'ダッシュボード';
+    }
+  }
+  openButton.addEventListener('click', () => showResourcePage(true));
+  navButton.addEventListener('click', () => showResourcePage(true));
+  backButton.addEventListener('click', () => showResourcePage(false));
+  document.addEventListener('click', event => {
+    const clickedNav = event.target instanceof Element ? event.target.closest('.side .nav') : null;
+    if (resourcePageOpen && clickedNav && clickedNav !== navButton) showResourcePage(false);
+  }, true);
+
+  const previousRender = window.render;
+  if (typeof previousRender === 'function') {
+    window.render = function (...args) {
+      const result = previousRender.apply(this, args);
+      syncAccess();
+      return result;
+    };
+  }
+  const previousRefresh = window.wedriveRefreshSetup;
+  if (typeof previousRefresh === 'function') {
+    window.wedriveRefreshSetup = async function (...args) {
+      if (!isAdmin()) return;
+      return previousRefresh.apply(this, args);
+    };
+  }
+  syncAccess();
+  if (typeof supabaseClient !== 'undefined') {
+    supabaseClient.auth.onAuthStateChange(() => setTimeout(syncAccess, 0));
+  }
+})();
+</script>
