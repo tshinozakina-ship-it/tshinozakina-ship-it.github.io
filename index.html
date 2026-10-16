@@ -720,3 +720,68 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
   updateAccess();
 })();
 </script>
+
+
+<style>
+@media(max-width:1000px){
+  button:not(.close):not(.leaflet-control-zoom-in):not(.leaflet-control-zoom-out){min-height:56px!important;font-size:16px!important;padding:12px 16px!important}
+  .action,.filter,.secondary,.text-btn{min-height:58px!important;font-size:16px!important;padding:12px 14px!important}
+  .filters{gap:10px!important}
+  .modal-actions button{min-height:58px!important;font-size:17px!important}
+  .welcome-admin-actions button,#openAdminResources,#newRequest{min-height:60px!important;font-size:18px!important}
+  .gps-driver .primary,.gps-driver .gps-stop{min-height:58px!important;font-size:17px!important}
+}
+@media(max-width:480px){
+  .action,.filter,.secondary,.text-btn{min-height:60px!important;font-size:17px!important}
+  .filters{grid-template-columns:1fr!important}
+}
+</style>
+<script>
+(()=>{
+ const body=document.getElementById('ordersBody');
+ const role=document.getElementById('role');
+ const logout=document.getElementById('logoutBtn');
+ if(!body||!role||!logout)return;
+ const isAdmin=()=>!role.disabled&&role.style.visibility!=='hidden'&&!logout.hidden;
+ function installDeleteButtons(){
+  body.querySelectorAll('tr').forEach(row=>{
+   const cells=row.cells;
+   if(!cells||cells.length<1||row.querySelector('[data-admin-delete]'))return;
+   if(!row.querySelector('.venue'))return;
+   const actions=cells[cells.length-1];
+   if(!actions)return;
+   const button=document.createElement('button');
+   button.type='button';button.className='action';button.dataset.adminDelete='';button.textContent='依頼を削除';
+   button.style.cssText='margin-top:8px;width:100%;min-height:50px;color:#9b3828;border:1px solid #d89b91;background:#fff7f5;font-weight:700';
+   actions.appendChild(button);
+  });
+ }
+ function update(){
+  const admin=isAdmin();
+  body.querySelectorAll('[data-admin-delete]').forEach(button=>button.hidden=!admin);
+ }
+ installDeleteButtons();update();
+ new MutationObserver(()=>{installDeleteButtons();update()}).observe(body,{childList:true,subtree:true});
+ new MutationObserver(update).observe(role,{attributes:true,attributeFilter:['disabled','style']});
+ new MutationObserver(update).observe(logout,{attributes:true,attributeFilter:['hidden']});
+ document.addEventListener('change',event=>{if(event.target===role)update()});
+ document.addEventListener('click',async event=>{
+  const button=event.target instanceof Element?event.target.closest('[data-admin-delete]'):null;
+  if(!button)return;
+  if(!isAdmin()){button.hidden=true;return}
+  const row=button.closest('tr');
+  const id=row?.querySelector('.order-id')?.textContent?.trim().split(/\s+/)[0];
+  if(!id){alert('依頼番号を読み取れませんでした。画面を更新して再度お試しください。');return}
+  if(!confirm('この送迎依頼を削除します。削除後は元に戻せません。よろしいですか？'))return;
+  button.disabled=true;button.textContent='削除しています…';
+  const {data,error}=await supabaseClient.from('transport_requests').delete().eq('id',id).select('id');
+  if(error||!data||data.length===0){
+   button.disabled=false;button.textContent='依頼を削除';
+   alert('依頼を削除できませんでした。管理者の削除権限をご確認ください。'+(error&&error.message?'\n'+error.message:''));
+   return;
+  }
+  try{const saved=JSON.parse(localStorage.getItem('wedriveOrders')||'[]');localStorage.setItem('wedriveOrders',JSON.stringify(saved.filter(item=>String(item.id)!==String(id))))}catch{}
+  alert('依頼を削除しました。');location.reload();
+ });
+})();
+</script>
