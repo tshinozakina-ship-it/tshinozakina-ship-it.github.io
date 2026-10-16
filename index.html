@@ -785,3 +785,19 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  });
 })();
 </script>
+
+
+<style>
+@media(max-width:1000px){
+  button:not(.close):not(.leaflet-control-zoom-in):not(.leaflet-control-zoom-out){min-height:64px!important;font-size:18px!important;padding:14px 18px!important}
+  .action,.filter,.secondary,.text-btn{min-height:68px!important;font-size:18px!important;padding:14px 16px!important}
+  .filters{gap:12px!important}
+  .modal-actions button{min-height:68px!important;font-size:18px!important}
+  .welcome-admin-actions button,#openAdminResources,#newRequest{min-height:70px!important;font-size:19px!important}
+  .gps-driver .primary,.gps-driver .gps-stop{min-height:68px!important;font-size:18px!important}
+}
+@media(max-width:480px){
+  .action,.filter,.secondary,.text-btn{min-height:70px!important;font-size:19px!important}
+  .filters{grid-template-columns:1fr!important}
+}
+</style>
