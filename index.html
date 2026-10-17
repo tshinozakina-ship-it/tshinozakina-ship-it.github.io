@@ -801,3 +801,24 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
   .filters{grid-template-columns:1fr!important}
 }
 </style>
+
+
+<script>
+(()=>{
+ const body=document.getElementById('ordersBody');
+ const roleSelect=document.getElementById('role');
+ const logout=document.getElementById('logoutBtn');
+ if(!body||!roleSelect||!logout)return;
+ const isAdminView=()=>roleSelect.value==='運行管理スタッフ'&&!roleSelect.disabled&&roleSelect.style.visibility!=='hidden'&&!logout.hidden;
+ function syncDeleteButtons(){body.querySelectorAll('[data-admin-delete]').forEach(button=>{button.hidden=!isAdminView();});}
+ syncDeleteButtons();
+ new MutationObserver(syncDeleteButtons).observe(body,{childList:true,subtree:true});
+ new MutationObserver(syncDeleteButtons).observe(roleSelect,{attributes:true,attributeFilter:['disabled','style']});
+ new MutationObserver(syncDeleteButtons).observe(logout,{attributes:true,attributeFilter:['hidden']});
+ roleSelect.addEventListener('change',syncDeleteButtons);
+ document.addEventListener('click',event=>{
+  const button=event.target instanceof Element?event.target.closest('[data-admin-delete]'):null;
+  if(button&&!isAdminView()){event.preventDefault();event.stopImmediatePropagation();button.hidden=true;}
+ },true);
+})();
+</script>
