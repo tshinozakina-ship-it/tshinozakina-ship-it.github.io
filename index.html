@@ -809,7 +809,7 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  const roleSelect=document.getElementById('role');
  const logout=document.getElementById('logoutBtn');
  if(!body||!roleSelect||!logout)return;
- const isAdminView=()=>roleSelect.value==='運行管理スタッフ'&&!roleSelect.disabled&&roleSelect.style.visibility!=='hidden'&&!logout.hidden;
+ const isAdminView=()=>roleSelect.value!=='バス会社'&&!roleSelect.disabled&&roleSelect.style.visibility!=='hidden'&&!logout.hidden;
  function syncDeleteButtons(){body.querySelectorAll('[data-admin-delete]').forEach(button=>{button.hidden=!isAdminView();});}
  syncDeleteButtons();
  new MutationObserver(syncDeleteButtons).observe(body,{childList:true,subtree:true});
