@@ -881,3 +881,22 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  document.getElementById('refreshUserDirectory').addEventListener('click',load);search.addEventListener('input',draw);rows.addEventListener('click',event=>{const button=event.target.closest('[data-user-id]');if(!button)return;const user=users.find(item=>String(item.user_id)===button.dataset.userId);if(!user)return;document.getElementById('userEmail').value=user.email||'';document.getElementById('userName').value=user.display_name||'';document.getElementById('userRole').value=roleNames.includes(user.role)?user.role:'式場プランナー';document.getElementById('userOrg').value=user.organization_id||'';document.getElementById('userEmail').scrollIntoView({behavior:'smooth',block:'center'});document.getElementById('userEmail').focus()});
 })();
 </script>
+
+<script>
+(function(){
+  const style=document.createElement('style');
+  style.textContent=`
+    #adminUserSetup{margin:24px 0!important;padding:0!important;border:2px solid #9fc8df!important;border-radius:16px!important;background:#eef7fc!important;overflow:hidden;box-shadow:0 4px 14px #294e6414!important}
+    #adminUserSetup>h3{margin:0!important;padding:16px 18px!important;background:#d8edf8!important;color:#174c68!important;font-size:18px!important;line-height:1.45!important;border-bottom:1px solid #b9d9e9!important}
+    #adminUserSetup>h3:before{content:'① ';font-weight:800;color:#1676a2}
+    #adminUserSetup>.form-grid{padding:18px!important;background:#f8fcfe!important;gap:14px!important}
+    #adminUserSetup>.form-grid .field{padding:12px!important;border:1px solid #d7e8f0!important;border-radius:10px!important;background:#fff!important}
+    #adminUserDirectory{margin-top:24px!important;padding:18px!important;border:2px solid #dfbd75!important;border-radius:16px!important;background:#fff9eb!important;box-shadow:0 4px 14px #725b2912!important}
+    #adminUserDirectory>h3{margin:-18px -18px 14px!important;padding:16px 18px!important;background:#f8edcf!important;color:#634a17!important;font-size:18px!important;line-height:1.45!important;border-bottom:1px solid #ead9ad!important}
+    #adminUserDirectory>h3:before{content:'② ';font-weight:800;color:#a57716}
+    #adminUserDirectory input,#adminUserDirectory button{min-height:48px}
+    @media(max-width:1000px){#adminUserSetup{margin-top:20px!important}#adminUserSetup>h3,#adminUserDirectory>h3{font-size:17px!important;padding:15px!important}#adminUserSetup>.form-grid,#adminUserDirectory{padding:14px!important}#adminUserDirectory>h3{margin:-14px -14px 12px!important}}
+  `;
+  document.head.appendChild(style);
+})();
+</script>
