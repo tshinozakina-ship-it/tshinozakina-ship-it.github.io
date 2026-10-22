@@ -928,3 +928,7 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
   };setTimeout(install,0);
 })();
 </script>
+
+<script>
+(()=>{const reorder=()=>{const form=document.getElementById('requestForm'),details=form?.querySelector('#weddingDetailsFields'),hall=details?.querySelector('[name="weddingHall"]')?.closest('.field'),venue=form?.querySelector('[name="venue"]')?.closest('.field');if(details&&hall&&venue){hall.before(venue);return}setTimeout(reorder,50)};setTimeout(reorder,0)})();
+</script>
