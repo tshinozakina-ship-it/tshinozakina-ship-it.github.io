@@ -932,3 +932,7 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
 <script>
 (()=>{const reorder=()=>{const form=document.getElementById('requestForm'),details=form?.querySelector('#weddingDetailsFields'),hall=details?.querySelector('[name="weddingHall"]')?.closest('.field'),venue=form?.querySelector('[name="venue"]')?.closest('.field');if(details&&hall&&venue){hall.before(venue);return}setTimeout(reorder,50)};setTimeout(reorder,0)})();
 </script>
+
+<script>
+(()=>{let tries=0;const reorder=()=>{const form=document.getElementById('requestForm'),hall=form?.querySelector('[name="weddingHall"]')?.closest('.field'),venue=form?.querySelector('[name="venue"]')?.closest('.field');if(hall&&venue){hall.before(venue);return}if(++tries<100)setTimeout(reorder,50)};setTimeout(reorder,0)})();
+</script>
