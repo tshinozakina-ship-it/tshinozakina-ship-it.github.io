@@ -900,3 +900,31 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
   document.head.appendChild(style);
 })();
 </script>
+<script>
+(()=>{
+  const style=document.createElement('style');
+  style.textContent='.wedding-order-group{display:block;margin-top:5px;padding:5px 8px;border-radius:7px;background:#f1f6f2;color:#315e4c;font-size:11px;font-weight:600;white-space:normal}.wedding-help{grid-column:1/-1;padding:10px 12px;border-radius:8px;background:#edf5ef;color:#315e4c;font-size:12px;line-height:1.6}.bus-count-help{font-size:11px;color:#657169;line-height:1.5}';document.head.appendChild(style);
+  const install=()=>{
+    const form=document.getElementById('requestForm'),modal=document.getElementById('modal'),wedding=document.getElementById('weddingDetailsFields');if(!form||!modal||!wedding)return;
+    const addSide=document.createElement('div');addSide.className='field';addSide.innerHTML='<label for="transportSide">どちら側の送迎か *</label><select id="transportSide" name="transportSide" required><option value="">選択してください</option><option value="新郎側">新郎側</option><option value="新婦側">新婦側</option><option value="両家共通">両家共通</option></select>';wedding.appendChild(addSide);
+    const help=document.createElement('div');help.className='wedding-help';help.textContent='同じ結婚式の送迎を続けて登録できます。新郎側・新婦側など送迎ごとに入力して送信してください。送信後は結婚式情報を残したまま次の送迎入力に進みます。';wedding.appendChild(help);
+    const countField=form.querySelector('[name="count"]')?.closest('.field'),countLabel=countField?.querySelector('label');if(countLabel)countLabel.textContent='乗車予定人数（1台あたり） *';
+    if(countField&&!form.querySelector('[name="busCount"]')){const units=document.createElement('div');units.className='field';units.innerHTML='<label for="busCount">この送迎の台数 *</label><input id="busCount" name="busCount" type="number" min="1" max="10" value="1" required inputmode="numeric"><small class="bus-count-help">台数分の依頼を作成し、車両と乗務員を1台ずつ手配します。</small>';countField.after(units)}
+    const clearTrip=()=>{['date','time','from','to','arrivalTime','requirements','count'].forEach(name=>{const input=form.querySelector('[name="'+name+'"]');if(input)input.value=''});const units=form.querySelector('[name="busCount"]');if(units)units.value='1';window.wedriveResetStops?.()};
+    const resetForm=()=>{form.reset();window.wedriveResetStops?.()};
+    document.getElementById('newRequest').onclick=()=>{document.getElementById('assignmentModal')?.classList.remove('show');if(role.value==='バス会社'){document.querySelector('[data-page="orders"]')?.click();return}resetForm();modal.classList.add('show')};
+    document.getElementById('close').onclick=()=>{modal.classList.remove('show');resetForm()};modal.onclick=e=>{if(e.target===modal){modal.classList.remove('show');resetForm()}};
+    form.onsubmit=async e=>{
+      e.preventDefault();if(!form.reportValidity())return;const f=new FormData(form),venue=wedriveVenueSelect.value,routeStops=window.wedriveCollectStops(form);if(!routeStops)return;
+      const {data:{session}}=await supabaseClient.auth.getSession();if(!session){toast('ログインし直してください');return}if(!venue){toast('式場を選択してください');return}
+      const wedding={weddingDate:String(f.get('weddingDate')).trim(),families:String(f.get('families')).trim(),groomName:String(f.get('groomName')).trim(),brideName:String(f.get('brideName')).trim(),weddingHall:String(f.get('weddingHall')).trim()},side=String(f.get('transportSide')),busCount=Math.max(1,Math.min(10,Number(f.get('busCount'))||1));
+      const eventSummary=[['結婚式日',wedding.weddingDate],['ご両家名',wedding.families],['新郎名',wedding.groomName],['新婦名',wedding.brideName],['会場名',wedding.weddingHall]].map(([label,value])=>label+'：'+value).join('　／　'),requirementText=String(f.get('requirements')||'').trim(),sharedNotes='【結婚式情報】'+eventSummary+String.fromCharCode(10)+'【送迎区分】'+side+String.fromCharCode(10)+'【手配台数】'+busCount+'台'+(requirementText?String.fromCharCode(10)+requirementText:'');
+      const submit=e.submitter||form.querySelector('[type="submit"]');submit.disabled=true;
+      const payloads=Array.from({length:busCount},(_,index)=>{const notes=['担当者：'+String(f.get('contact')).trim(),'到着予定時刻：'+String(f.get('arrivalTime')),'経由地：'+JSON.stringify(routeStops),'要望共有事項：'+sharedNotes+(busCount>1?String.fromCharCode(10)+'【車両番号】'+(index+1)+'/'+busCount+'台':'')].join(String.fromCharCode(10));return {venue_id:venue,requester_id:session.user.id,pickup_date:f.get('date'),pickup_time:f.get('time'),pickup_location:String(f.get('from')).trim(),destination:String(f.get('to')).trim(),passenger_count:Number(f.get('count')),vehicle_type:f.get('vehicle'),notes,status:'pending'}});
+      const {error}=await supabaseClient.from('transport_requests').insert(payloads).select('id');submit.disabled=false;if(error){console.error(error);toast(error.code==='42501'?'このアカウントには依頼登録の権限がありません。':'依頼を保存できませんでした。管理者へご連絡ください。');return}
+      await wedriveLoadShared(true);clearTrip();toast(busCount>1?busCount+'台分の依頼を登録しました。続けて別の送迎を入力できます。':'送迎依頼を登録しました。同じ結婚式の次の送迎を続けて入力できます。');
+    };
+    const baseRender=render;render=function(){baseRender();let visible=orders;if(role.value==='バス会社')visible=orders.filter(o=>o.company==='株式会社　忠助'||(o.status==='pending'&&!o.company));visible=visible.filter(o=>activeFilter==='all'||(activeFilter==='pending'?['pending','arrange'].includes(o.status):o.status==='accepted'));document.querySelectorAll('#ordersBody tr').forEach((row,index)=>{const requirements=String(visible[index]?.requirements||''),lines=requirements.split(String.fromCharCode(10)),weddingLabel=(lines.find(line=>line.startsWith('【結婚式情報】'))||'').replace('【結婚式情報】',''),sideLabel=(lines.find(line=>line.startsWith('【送迎区分】'))||'').replace('【送迎区分】',''),vehicleLabel=(lines.find(line=>line.startsWith('【車両番号】'))||lines.find(line=>line.startsWith('【手配台数】'))||'').replace('【車両番号】','').replace('【手配台数】','');if(!weddingLabel&&!sideLabel)return;if(!row.cells[0]||row.cells[0].querySelector('.wedding-order-group'))return;const label=document.createElement('small');label.className='wedding-order-group';label.textContent=[weddingLabel,sideLabel,vehicleLabel].filter(Boolean).join(' ・ ');row.cells[0].appendChild(label)})};render();
+  };setTimeout(install,0);
+})();
+</script>
