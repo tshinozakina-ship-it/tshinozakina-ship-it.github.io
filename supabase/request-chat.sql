@@ -1,4 +1,4 @@
--- WEDRIVE: per-request chat; only the requester, accepted bus company, and admins can participate.
+-- WEDRIVE: per-request chat for the requester, same-venue planners, accepted bus company, and admins.
 CREATE TABLE IF NOT EXISTS public.request_messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   request_id uuid NOT NULL REFERENCES public.transport_requests(id) ON DELETE CASCADE,
