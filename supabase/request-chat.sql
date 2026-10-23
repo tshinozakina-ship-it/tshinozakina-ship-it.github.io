@@ -1,4 +1,4 @@
--- WEDRIVE: per-request chat for the requester, same-venue planners, accepted bus company, and admins.
+-- WEDRIVE: requester, same-venue planners, bus companies for pending requests, accepted bus company, and admins.
 CREATE TABLE IF NOT EXISTS public.request_messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   request_id uuid NOT NULL REFERENCES public.transport_requests(id) ON DELETE CASCADE,
@@ -20,6 +20,7 @@ AS $function$
     WHERE r.id = p_request_id AND (
       public.wedrive_has_role(ARRAY['運行管理スタッフ']::text[])
       OR r.requester_id = (SELECT auth.uid())
+      OR (public.wedrive_has_role(ARRAY['バス会社']::text[]) AND r.status = 'pending')
       OR (public.wedrive_has_role(ARRAY['式場プランナー']::text[])
           AND EXISTS (SELECT 1 FROM public.wedrive_planner_venues pv
                       WHERE pv.user_id = (SELECT auth.uid()) AND pv.venue_id = r.venue_id))
@@ -73,6 +74,8 @@ BEGIN
   FROM (
     SELECT v_requester AS user_id
     UNION SELECT user_id FROM public.wedrive_user_roles WHERE role = '運行管理スタッフ'
+    UNION SELECT user_id FROM public.wedrive_user_roles
+      WHERE role = 'バス会社' AND (SELECT status FROM public.transport_requests WHERE id = NEW.request_id) = 'pending'
     UNION SELECT pv.user_id FROM public.wedrive_planner_venues pv
       JOIN public.transport_requests r ON r.venue_id = pv.venue_id
       WHERE r.id = NEW.request_id
