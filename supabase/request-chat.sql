@@ -20,6 +20,9 @@ AS $function$
     WHERE r.id = p_request_id AND (
       public.wedrive_has_role(ARRAY['運行管理スタッフ']::text[])
       OR r.requester_id = (SELECT auth.uid())
+      OR (public.wedrive_has_role(ARRAY['式場プランナー']::text[])
+          AND EXISTS (SELECT 1 FROM public.wedrive_planner_venues pv
+                      WHERE pv.user_id = (SELECT auth.uid()) AND pv.venue_id = r.venue_id))
       OR EXISTS (
         SELECT 1 FROM public.assignments a
         JOIN public.profiles p ON p.organization_id = a.company_id
@@ -70,6 +73,9 @@ BEGIN
   FROM (
     SELECT v_requester AS user_id
     UNION SELECT user_id FROM public.wedrive_user_roles WHERE role = '運行管理スタッフ'
+    UNION SELECT pv.user_id FROM public.wedrive_planner_venues pv
+      JOIN public.transport_requests r ON r.venue_id = pv.venue_id
+      WHERE r.id = NEW.request_id
     UNION SELECT p.id AS user_id FROM public.assignments a
       JOIN public.profiles p ON p.organization_id = a.company_id
       JOIN public.wedrive_user_roles ur ON ur.user_id = p.id AND ur.role = 'バス会社'
