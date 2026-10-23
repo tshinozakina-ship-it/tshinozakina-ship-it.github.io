@@ -570,7 +570,7 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
   if (description) description.textContent = '管理者専用ページです。会社、車両、乗務員、利用者の役割を登録できます。';
 
   const style = document.createElement('style');
-  style.textContent = '
+  style.textContent = `
     [hidden]{display:none!important}
     .content.admin-resources-page{min-height:calc(100vh - 76px)}
     .content.admin-resources-page>:not(#resourceWorkspace){display:none!important}
@@ -580,7 +580,7 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
     #openAdminResources{min-height:50px;padding:12px 16px;border:1px solid #9ab6a1;background:#edf4ee;color:#245b43;border-radius:10px;font-weight:700;font-size:15px;white-space:normal}
     #closeAdminResources{min-height:46px;font-size:14px;white-space:nowrap}
     @media(max-width:1000px){.welcome-admin-actions{display:grid;grid-template-columns:1fr;width:100%;gap:8px}#openAdminResources{width:100%;min-height:56px;font-size:17px}#closeAdminResources{width:100%;min-height:50px}}
-  ';
+  `;
   document.head.append(style);
 
   function isAdmin() { return typeof appRole !== 'undefined' && appRole === adminRole; }
