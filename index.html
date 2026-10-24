@@ -1035,3 +1035,36 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  },true);
 })();
 </script>
+
+<!-- Admin shuttle bus ordering: uses the existing request and dispatch workflow. -->
+<script>
+(()=>{
+ const setup=()=>{
+  const launch=document.getElementById('newRequest'),roleSelect=document.getElementById('role');
+  if(!launch||!roleSelect)return false;
+  const isAdmin=()=>typeof appRole!=='undefined'&&appRole==='運行管理スタッフ';
+  let button=document.getElementById('newShuttleOrder');
+  if(!button){button=document.createElement('button');button.type='button';button.id='newShuttleOrder';button.className='primary';button.textContent='＋ シャトルバスを依頼';button.style.cssText='display:block;width:100%;min-height:58px;margin-top:10px;background:#315e4c;font-size:17px;font-weight:700';launch.insertAdjacentElement('afterend',button);}
+  let modal=document.getElementById('shuttleOrderModal');
+  if(!modal){modal=document.createElement('div');modal.className='modal-back';modal.id='shuttleOrderModal';modal.innerHTML='<div class="modal"><div class="modal-head"><h2>シャトルバスを依頼</h2><button type="button" class="close" id="closeShuttleOrder" aria-label="閉じる">×</button></div><form id="shuttleOrderForm"><div class="form-grid"><div class="field full"><label>運行区間</label><input value="小倉駅 ⇔ THE CENTRAL PARK KOKURA（CPK）" readonly></div><div class="field"><label for="shuttleDate">運行日 *</label><input id="shuttleDate" name="date" type="date" required></div><div class="field"><label for="shuttleBusCount">必要な台数 *</label><input id="shuttleBusCount" name="busCount" type="number" min="1" max="10" value="1" step="1" inputmode="numeric" required></div><div class="field"><label for="shuttleStartTime">運行開始時刻 *</label><input id="shuttleStartTime" name="startTime" type="time" required></div><div class="field"><label for="shuttleEndTime">運行終了時刻 *</label><input id="shuttleEndTime" name="endTime" type="time" required></div><div class="field full"><label>車種</label><input value="マイクロバスのみ" readonly></div><div class="field full"><small>台数分の依頼を作成します。バス会社は各車両を個別に受注・手配できます。</small></div></div><div class="modal-actions"><button type="button" class="secondary" id="cancelShuttleOrder">戻る</button><button type="submit" class="primary" id="submitShuttleOrder">シャトルバスを発注</button></div></form></div>';document.body.appendChild(modal);}
+  button.hidden=!isAdmin();
+  if(button.dataset.ready)return typeof appRole!=='undefined'&&appRole!==null;
+  button.dataset.ready='1';
+  const close=()=>modal.classList.remove('show');
+  button.addEventListener('click',()=>{if(!isAdmin()){toast('運行管理者のみ発注できます');return}document.getElementById('shuttleOrderForm').reset();document.getElementById('shuttleDate').value='';document.getElementById('shuttleBusCount').value='1';modal.classList.add('show')});
+  document.getElementById('closeShuttleOrder').addEventListener('click',close);document.getElementById('cancelShuttleOrder').addEventListener('click',close);modal.addEventListener('click',event=>{if(event.target===modal)close()});
+  roleSelect.addEventListener('change',()=>{button.hidden=!isAdmin()});
+  document.getElementById('shuttleOrderForm').addEventListener('submit',async event=>{
+   event.preventDefault();const form=event.currentTarget;if(!form.reportValidity())return;if(!isAdmin()){toast('運行管理者のみ発注できます');return}
+   const date=form.elements.date.value,start=form.elements.startTime.value,end=form.elements.endTime.value,count=Number(form.elements.busCount.value);if(end<=start){toast('運行終了時刻は開始時刻より後にしてください');return}if(!Number.isInteger(count)||count<1||count>10){toast('台数は1～10台で入力してください');return}
+   const venueSelect=typeof wedriveVenueSelect!=='undefined'?wedriveVenueSelect:document.querySelector('#requestForm [name="venue"]');const venueOption=venueSelect&&Array.from(venueSelect.options).find(option=>/THE CENTRAL PARK KOKURA|CENTRAL PARK|CPK/i.test(option.textContent));if(!venueOption){toast('式場「THE CENTRAL PARK KOKURA」が見つかりません。管理者に確認してください');return}
+   const {data:{session}}=await supabaseClient.auth.getSession();if(!session){toast('ログインし直してください');return}
+   const submit=document.getElementById('submitShuttleOrder');submit.disabled=true;const payloads=Array.from({length:count},(_,index)=>({venue_id:venueOption.value,requester_id:session.user.id,pickup_date:date,pickup_time:start,pickup_location:'小倉駅',destination:'THE CENTRAL PARK KOKURA（CPK）',passenger_count:1,vehicle_type:'マイクロバス',notes:['担当者：運行管理者（シャトルバス）','到着予定時刻：'+end,'経由地：[]','要望共有事項：【シャトルバス】','運行区間：小倉駅 ⇔ THE CENTRAL PARK KOKURA（CPK）','運行時間：'+start+'～'+end,'発注台数：'+count+'台','車両番号：'+(index+1)+'/'+count+'台'].join(String.fromCharCode(10)),status:'pending'}));
+   const {error}=await supabaseClient.from('transport_requests').insert(payloads).select('id');submit.disabled=false;if(error){console.error(error);toast(error.message||'シャトルバスを登録できませんでした');return}
+   await wedriveLoadShared(true);close();form.reset();document.getElementById('shuttleBusCount').value='1';toast(count+'台分のシャトルバス依頼を登録しました。依頼一覧をご確認ください');document.querySelector('[data-page="orders"]')?.click();document.getElementById('ordersPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  const priorRender=render;render=function(){priorRender();const rows=Array.from(document.querySelectorAll('#ordersBody tr'));for(const row of rows){row.classList.remove('shuttle-order-row');row.querySelector('.shuttle-order-tag')?.remove();const idText=row.cells[0]?.querySelector('.order-id')?.textContent||'',id=idText.split(' · ')[0].trim(),order=orders.find(item=>String(item.id)===id);if(!order||!String(order.requirements||'').includes('【シャトルバス】'))continue;const req=String(order.requirements),total=Number((req.match(/発注台数：(\d+)台/)||[])[1]||1),slot=(req.match(/車両番号：(\d+)\/(\d+)台/)||[]),start=(req.match(/運行時間：([^～\n]+)～/)||[])[1]||order.time,end=(req.match(/運行時間：[^～\n]+～([^\n]+)/)||[])[1]||order.arrivalTime;row.classList.add('shuttle-order-row');const tag=document.createElement('small');tag.className='shuttle-order-tag';tag.textContent='シャトルバス ・ '+(slot[1]||'1')+'台目／合計'+total+'台 ・ '+start+'～'+end;row.cells[0]?.appendChild(tag);if(row.cells[3])row.cells[3].textContent=total+'台（'+(slot[1]||'1')+'台目）';}};
+  const style=document.createElement('style');style.textContent='.shuttle-order-tag{display:block;margin-top:6px;padding:6px 8px;border-radius:7px;background:#e4f1e8;color:#245b43;font-size:13px;font-weight:700;white-space:normal}.shuttle-order-row td:nth-child(4)::before{content:"発注台数"!important}#shuttleOrderModal .modal{width:min(580px,100%)}#shuttleOrderModal .modal-actions .primary{background:#245b43}#newShuttleOrder[hidden]{display:none!important}@media(max-width:1000px){#newShuttleOrder{min-height:58px;font-size:18px}.shuttle-order-tag{font-size:14px}}';document.head.appendChild(style);render();return true;
+ };let tries=0;const timer=setInterval(()=>{if(setup()||++tries>120)clearInterval(timer)},250);
+})();
+</script>
