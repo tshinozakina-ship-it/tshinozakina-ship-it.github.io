@@ -942,3 +942,59 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  },50);
 })();
 </script>
+
+<!-- Keep the inventory entry point available after async workspace refreshes. -->
+<script>
+(()=>{
+  let queued=false;
+  function ensureFleetInventoryEntry(){
+    if(queued)return;
+    queued=true;
+    requestAnimationFrame(()=>{
+      queued=false;
+      const box=document.getElementById('resourceWorkspace');
+      const inventory=document.getElementById('fleetInventory');
+      if(!box||!inventory)return;
+      const isAdmin=typeof appRole==='undefined'||appRole==='運行管理スタッフ';
+      let button=document.getElementById('openFleetInventoryPage');
+      let page=document.getElementById('fleetInventoryPage');
+      if(!button){
+        button=document.createElement('button');
+        button.id='openFleetInventoryPage';
+        button.type='button';
+        button.className='primary';
+        button.textContent='登録済み車両・乗務員を管理';
+        button.style.cssText='display:block;width:100%;min-height:58px;margin:14px 0 20px;font-size:17px;font-weight:700;border-radius:12px;';
+        const heading=box.querySelector('.panel-head');
+        (heading||box).insertAdjacentElement(heading?'afterend':'afterbegin',button);
+      }
+      if(!page){
+        page=document.createElement('section');
+        page.id='fleetInventoryPage';
+        page.style.display='none';
+        page.innerHTML='<div class="panel-head"><div><h2>登録済み車両・乗務員を管理</h2><p>車両と乗務員の情報を確認し、変更または利用停止ができます。利用停止にしても過去の依頼記録は残ります。</p></div><button type="button" id="closeFleetInventoryPage">← 登録・利用者設定へ戻る</button></div>';
+        box.appendChild(page);
+      }
+      if(inventory.parentElement!==page)page.appendChild(inventory);
+      button.hidden=!isAdmin;
+      button.onclick=()=>{
+        box.querySelectorAll(':scope > *').forEach(item=>{if(item!==page&&item!==button){item.dataset.fleetPrevDisplay=item.style.display;item.style.display='none';}});
+        button.style.display='none';page.style.display='block';
+        const crumb=document.querySelector('.crumb');if(crumb)crumb.innerHTML='WEDRIVE　/　登録済み車両・乗務員';
+        window.scrollTo(0,0);
+      };
+      const back=page.querySelector('#closeFleetInventoryPage');
+      if(back)back.onclick=()=>{
+        page.style.display='none';
+        box.querySelectorAll(':scope > *').forEach(item=>{if(item!==page&&item!==button){item.style.display=item.dataset.fleetPrevDisplay||'';delete item.dataset.fleetPrevDisplay;}});
+        button.style.display=isAdmin?'':'none';
+        const crumb=document.querySelector('.crumb');if(crumb)crumb.innerHTML='WEDRIVE　/　車両・乗務員の管理';
+        window.scrollTo(0,0);
+      };
+    });
+  }
+  new MutationObserver(ensureFleetInventoryEntry).observe(document.documentElement,{childList:true,subtree:true});
+  document.addEventListener('DOMContentLoaded',ensureFleetInventoryEntry);
+  ensureFleetInventoryEntry();
+})();
+</script>
