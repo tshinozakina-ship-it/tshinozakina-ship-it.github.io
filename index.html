@@ -917,3 +917,28 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
 <script>
 (()=>{let tries=0;const reorder=()=>{const form=document.getElementById('requestForm'),hall=form?.querySelector('[name="weddingHall"]')?.closest('.field'),venue=form?.querySelector('[name="venue"]')?.closest('.field');if(hall&&venue){hall.before(venue);return}if(++tries<100)setTimeout(reorder,50)};setTimeout(reorder,0)})();
 </script>
+
+<script>
+(()=>{
+ const retry=setInterval(()=>{
+  const box=document.getElementById('resourceWorkspace'),inventory=document.getElementById('fleetInventory'),header=box?.querySelector('.panel-head'),crumb=document.getElementById('crumb');
+  if(!box||!inventory||!header||!crumb)return;
+  clearInterval(retry);
+  if(document.getElementById('openFleetInventoryPage'))return;
+  const rootItems=Array.from(box.children).filter(item=>item!==inventory);
+  const adminOnly=()=>typeof appRole!=='undefined'&&appRole==='運行管理スタッフ';
+  const open=document.createElement('button');open.type='button';open.id='openFleetInventoryPage';open.className='primary';open.textContent='登録済み車両・乗務員を管理';open.style.cssText='display:block;width:100%;min-height:56px;margin:14px 0 18px;padding:14px 18px;border-radius:10px;font-size:17px;font-weight:700';
+  const page=document.createElement('section');page.id='fleetInventoryPage';page.hidden=true;page.style.cssText='width:100%;padding:18px;border:2px solid #9ab6a1;border-radius:14px;background:#f7faf7';
+  const title=document.createElement('h2');title.textContent='登録済み車両・乗務員を管理';title.style.cssText='margin:0 0 6px;font-size:22px';
+  const note=document.createElement('p');note.textContent='車両と乗務員の情報を確認し、変更または利用停止ができます。利用停止にしても過去の依頼記録は残ります。';note.style.cssText='margin:0 0 14px;color:#53625a;line-height:1.6';
+  const back=document.createElement('button');back.type='button';back.className='secondary';back.textContent='← 登録・利用者設定へ戻る';back.style.cssText='min-height:50px;margin:0 0 14px;padding:12px 16px;font-weight:700';
+  const returnToSetup=()=>{page.hidden=true;rootItems.forEach(item=>item.hidden=false);open.hidden=!adminOnly();crumb.textContent='車両・乗務員の管理'};
+  open.addEventListener('click',()=>{if(!adminOnly()){alert('このページは管理者専用です');return}rootItems.forEach(item=>item.hidden=true);open.hidden=true;page.hidden=false;crumb.textContent='登録済み車両・乗務員';window.scrollTo({top:0,behavior:'smooth'})});
+  back.addEventListener('click',()=>{returnToSetup();window.scrollTo({top:0,behavior:'smooth'})});
+  page.append(title,note,back,inventory);header.after(open);box.append(page);
+  document.addEventListener('click',event=>{if(page.hidden)return;const nav=event.target instanceof Element?event.target.closest('.side .nav'):null;const leave=event.target instanceof Element?event.target.closest('#closeAdminResources'):null;if((nav&&nav.id!=='adminResourcesNav')||leave)returnToSetup()},true);
+  document.getElementById('role')?.addEventListener('change',()=>{if(!adminOnly())returnToSetup();open.hidden=!adminOnly()});
+  if(!adminOnly())open.hidden=true;
+ },50);
+})();
+</script>
