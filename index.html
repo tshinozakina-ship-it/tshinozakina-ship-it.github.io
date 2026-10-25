@@ -813,6 +813,12 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  body>*:not(#wedrivePrintDocument){display:none!important}
  #wedrivePrintDocument{display:block!important;position:static!important;width:100%!important;color:#222!important;font:9.5pt/1.3 "Noto Sans JP",sans-serif!important;break-inside:avoid!important}
  #wedrivePrintDocument *{visibility:visible!important;box-sizing:border-box}
+ #wedrivePrintDocument table.sheet-table{display:table!important;width:100%!important;break-inside:avoid!important}
+ #wedrivePrintDocument table.sheet-table thead{display:table-header-group!important}
+ #wedrivePrintDocument table.sheet-table tbody{display:table-row-group!important}
+ #wedrivePrintDocument table.sheet-table tr{display:table-row!important;grid-template-columns:none!important;gap:0!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important}
+ #wedrivePrintDocument table.sheet-table th,#wedrivePrintDocument table.sheet-table td{display:table-cell!important;min-width:0!important;white-space:normal!important}
+ #wedrivePrintDocument table.sheet-table td::before,#wedrivePrintDocument table.sheet-table th::before{content:none!important;display:none!important}
  #wedrivePrintDocument .sheet-head{display:grid;grid-template-columns:1fr 2fr 1fr;align-items:end;border-bottom:2px solid #26342f;padding-bottom:2mm;margin-bottom:3mm}
  #wedrivePrintDocument .sheet-no{font-size:8pt;color:#4b5550}
  #wedrivePrintDocument h1{margin:0;text-align:center;font-size:17pt;letter-spacing:.08em}
