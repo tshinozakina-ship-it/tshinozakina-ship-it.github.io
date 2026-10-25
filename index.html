@@ -804,8 +804,9 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
 </script>
 
 <style id="wedrive-print-style">
-#ordersBody [data-order-print]{white-space:normal;line-height:1.35;padding:10px 12px}
-@media(max-width:700px){#ordersBody [data-order-print]{width:100%}}
+#ordersBody .order-document-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+#ordersBody .order-document-actions .action{white-space:normal;line-height:1.35;padding:10px 12px}
+@media(max-width:700px){#ordersBody .order-document-actions{display:grid;grid-template-columns:1fr}#ordersBody .order-document-actions .action{width:100%}}
 @media print{
  @page{size:A4;margin:15mm}
  html,body{background:#fff!important}
@@ -834,22 +835,22 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  const isPlannerView=()=>role.value==='式場プランナー';
  const printableStatuses=new Set(['accepted','arrange','done']);
  function currentVisibleOrders(){let list=orders;if(role.value==='バス会社')list=orders.filter(o=>o.company==='株式会社　忠助'||(o.status==='pending'&&!o.company));return list.filter(o=>activeFilter==='all'||(activeFilter==='pending'?['pending','arrange'].includes(o.status):o.status==='accepted'));}
- function addPrintButtons(){const visible=currentVisibleOrders();body.querySelectorAll('tr').forEach((row,index)=>{const existing=row.querySelector('[data-order-print]');const order=visible[index];if(!isPlannerView()||!order||!printableStatuses.has(order.status)){if(existing)existing.remove();return;}const cell=row.lastElementChild;if(!cell)return;if(existing&&existing.dataset.orderPrint===String(order.id))return;if(existing)existing.remove();const button=document.createElement('button');button.type='button';button.className='action';button.dataset.orderPrint=String(order.id);button.textContent='受注確認書を印刷・保存';button.setAttribute('aria-label',(order.venue||'送迎依頼')+'の受注確認書を印刷またはPDF保存');cell.appendChild(button);});}
+ function addPrintButtons(){const visible=currentVisibleOrders();body.querySelectorAll('tr').forEach((row,index)=>{const existing=row.querySelector('.order-document-actions');const order=visible[index];if(!isPlannerView()||!order||!printableStatuses.has(order.status)){if(existing)existing.remove();return;}const cell=row.lastElementChild;if(!cell)return;if(existing&&existing.dataset.orderId===String(order.id))return;if(existing)existing.remove();const actions=document.createElement('div');actions.className='order-document-actions';actions.dataset.orderId=String(order.id);[['orderPrint','受注確認書を印刷'],['orderPdf','PDFで保存']].forEach(([kind,label])=>{const button=document.createElement('button');button.type='button';button.className='action';button.dataset[kind]=String(order.id);button.textContent=label;button.setAttribute('aria-label',(order.venue||'送迎依頼')+'の'+label);actions.appendChild(button);});cell.appendChild(actions);});}
  const previousRender=render;render=function(...args){const result=previousRender.apply(this,args);addPrintButtons();return result};
  new MutationObserver(addPrintButtons).observe(body,{childList:true,subtree:true});
- function printableOrder(order){
+ function printableOrder(order,format='print'){
   if(!isPlannerView()||!printableStatuses.has(order.status)){toast('バス会社の受注後に印刷できます');return;}
   const stops=(order.routeStops||[]).map((stop,index)=>'経由地'+(index+1)+'：'+(stop.location||'')+'（'+(stop.arrivalTime||'時間未設定')+' 到着）').join('\n')||'なし';
   const status=({accepted:'バス会社受注済み',arrange:'車両・乗務員の手配中',done:'運行完了'})[order.status]||'受注済み';
   const rows=[['依頼番号',order.id||''],['式場・案件',order.venue||''],['プランナー担当者',order.contact||'未記入'],['運行日',order.date||''],['出発地・出発時刻',(order.from||'未入力')+' ／ '+(order.time||'未入力')+' 出発'],['経由地・到着時刻',stops],['到着地・到着予定時刻',(order.to||'未入力')+' ／ '+(order.arrivalTime||'未設定')+' 到着予定'],['希望車種・乗車人数',(order.vehicle||'未指定')+' ／ '+(order.count||'未入力')+'名'],['要望共有事項',order.requirements||'特になし'],['バス会社',order.company||'株式会社 忠助'],['手配車両',order.assignedVehicle||'受注済み・車両未確定'],['乗務員',order.driver||'未確定'],['受注・手配状況',status]];
   const printedAt=new Date().toLocaleString('ja-JP',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
   documentSheet.innerHTML='<div class="print-meta"><b>WEDRIVE　送迎手配</b><span>印刷日時：'+esc(printedAt)+'</span></div><h1>受注確認書</h1><div class="print-subtitle">式場プランナー様控え</div><table><tbody>'+rows.map(([label,value])=>'<tr><th>'+esc(label)+'</th><td'+(['経由地・到着時刻','要望共有事項'].includes(label)?' class="print-notes"':'')+'>'+esc(value)+'</td></tr>').join('')+'</tbody></table><div class="print-signatures"><div class="print-signature">式場プランナー　確認日・署名<br><br></div><div class="print-signature">バス会社　確認日・署名<br><br></div></div><div class="print-footer">印刷時点でWEDRIVEに登録されている内容です。ご確認・お問い合わせ：式場 093-383-3920 ／ バス会社（株式会社 忠助）092-552-4451（テスト）</div>';
-  documentSheet.style.display='block';const cleanup=()=>{documentSheet.style.display='none';window.removeEventListener('afterprint',cleanup)};window.addEventListener('afterprint',cleanup);window.print();window.setTimeout(cleanup,1000);
+  const previousTitle=document.title;if(format==='pdf'){document.title='受注確認書_'+String(order.id||'送迎依頼').replaceAll('-','');toast('印刷画面で保存先に「PDFとして保存」を選んでください。');}
+  documentSheet.style.display='block';const cleanup=()=>{documentSheet.style.display='none';document.title=previousTitle;window.removeEventListener('afterprint',cleanup)};window.addEventListener('afterprint',cleanup);window.print();window.setTimeout(cleanup,1000);
  }
- document.addEventListener('click',event=>{const button=event.target instanceof Element?event.target.closest('[data-order-print]'):null;if(!button)return;event.preventDefault();event.stopPropagation();const order=orders.find(item=>String(item.id)===button.dataset.orderPrint);if(order)printableOrder(order);},true);
+ document.addEventListener('click',event=>{const button=event.target instanceof Element?event.target.closest('[data-order-print],[data-order-pdf]'):null;if(!button)return;event.preventDefault();event.stopPropagation();const orderId=button.dataset.orderPrint||button.dataset.orderPdf,order=orders.find(item=>String(item.id)===orderId);if(order)printableOrder(order,button.hasAttribute('data-order-pdf')?'pdf':'print');},true);
  role.addEventListener('change',addPrintButtons);
-})();
-</script>
+})();</script>
 
 <script>
 (()=>{
