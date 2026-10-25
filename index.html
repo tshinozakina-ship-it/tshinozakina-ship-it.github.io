@@ -1042,7 +1042,7 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  const setup=()=>{
   const launch=document.getElementById('newRequest'),roleSelect=document.getElementById('role');
   if(!launch||!roleSelect)return false;
-  const isAdmin=()=>roleSelect.value==='運行管理スタッフ';
+  const isAdmin=()=>!roleSelect.disabled&&roleSelect.value==='運行管理スタッフ';
   let button=document.getElementById('newShuttleOrder');
   if(!button){button=document.createElement('button');button.type='button';button.id='newShuttleOrder';button.className='primary';button.textContent='＋ シャトルバスを依頼';button.style.cssText='display:block;width:100%;min-height:58px;margin-top:10px;background:#007FA8;color:#FFFFFF;font-size:17px;font-weight:700';launch.insertAdjacentElement('afterend',button);}
   let modal=document.getElementById('shuttleOrderModal');
