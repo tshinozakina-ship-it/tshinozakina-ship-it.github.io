@@ -835,7 +835,7 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  const isPlannerView=()=>role.value==='式場プランナー';
  const printableStatuses=new Set(['accepted','arrange','done']);
  function currentVisibleOrders(){let list=orders;if(role.value==='バス会社')list=orders.filter(o=>o.company==='株式会社　忠助'||(o.status==='pending'&&!o.company));return list.filter(o=>activeFilter==='all'||(activeFilter==='pending'?['pending','arrange'].includes(o.status):o.status==='accepted'));}
- function addPrintButtons(){const visible=currentVisibleOrders();body.querySelectorAll('tr').forEach((row,index)=>{const existing=row.querySelector('.order-document-actions');const order=visible[index];if(!isPlannerView()||!order||!printableStatuses.has(order.status)){if(existing)existing.remove();return;}const cell=row.lastElementChild;if(!cell)return;if(existing&&existing.dataset.orderId===String(order.id))return;if(existing)existing.remove();const actions=document.createElement('div');actions.className='order-document-actions';actions.dataset.orderId=String(order.id);[['orderPrint','受注確認書を印刷'],['orderPdf','PDFで保存']].forEach(([kind,label])=>{const button=document.createElement('button');button.type='button';button.className='action';button.dataset[kind]=String(order.id);button.textContent=label;button.setAttribute('aria-label',(order.venue||'送迎依頼')+'の'+label);actions.appendChild(button);});cell.appendChild(actions);});}
+ function addPrintButtons(){const visible=currentVisibleOrders();body.querySelectorAll('tr').forEach((row,index)=>{const existing=row.querySelector('.order-document-actions');const order=visible[index];if(!isPlannerView()||!order||!printableStatuses.has(order.status)){if(existing)existing.remove();return;}const cell=row.lastElementChild;if(!cell)return;if(existing&&existing.dataset.orderId===String(order.id))return;if(existing)existing.remove();const actions=document.createElement('div');actions.className='order-document-actions';actions.dataset.orderId=String(order.id);[['orderPrint','受注確認書を印刷'],['orderPdf','受注確認書をPDFで保存']].forEach(([kind,label])=>{const button=document.createElement('button');button.type='button';button.className='action';button.dataset[kind]=String(order.id);button.textContent=label;button.setAttribute('aria-label',(order.venue||'送迎依頼')+'の'+label);actions.appendChild(button);});cell.appendChild(actions);});}
  const previousRender=render;render=function(...args){const result=previousRender.apply(this,args);addPrintButtons();return result};
  new MutationObserver(addPrintButtons).observe(body,{childList:true,subtree:true});
  function printableOrder(order,format='print'){
@@ -1069,3 +1069,24 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  };let tries=0;const timer=setInterval(()=>{if(setup()||++tries>120)clearInterval(timer)},250);
 })();
 </script>
+
+<style id="wedrive-button-colors">
+button:not(.leaflet-control-zoom-in):not(.leaflet-control-zoom-out){transition:background-color .15s ease,color .15s ease,border-color .15s ease}
+button.primary:not(#newShuttleOrder){background:#2f6f4e!important;color:#fff!important;border:1px solid #2f6f4e!important}
+button.secondary{background:#e8f3fc!important;color:#225e7b!important;border:1px solid #b8d5e8!important}
+button.action{background:#eaf3ff!important;color:#24547a!important;border:1px solid #b6cfe8!important}
+button.text-btn{background:#f1edff!important;color:#60439d!important;border:1px solid #d2c6ef!important;border-radius:8px;padding:9px 12px}
+button.filter{background:#f3f5f7!important;color:#495564!important;border:1px solid #d2d9e1!important}
+button.filter.sel{background:#e5f3e9!important;color:#28613f!important;border-color:#a6c9ad!important}
+button.nav{background:transparent!important;color:#46534b!important;border-color:transparent!important}
+button.nav.active{background:#e6f3e9!important;color:#245b43!important;border-color:#c7dfcd!important}
+#logoutBtn{background:#f2f4f6!important;color:#4b5563!important;border:1px solid #d5dbe2!important}
+button.close,button.bell{background:#f2f4f6!important;color:#4b5563!important;border:1px solid #d5dbe2!important;border-radius:8px}
+button[data-admin-delete],button[aria-label^="この経由地を削除"],button.danger,button[id*="delete" i]{background:#fff0ee!important;color:#a7372b!important;border:1px solid #e6b4ad!important}
+#requestForm button[type="submit"],#loginBtn{background:#2f6f4e!important;color:#fff!important;border:1px solid #2f6f4e!important;border-radius:9px}
+#signupBtn{background:#e8f3fc!important;color:#225e7b!important;border:1px solid #b8d5e8!important;border-radius:9px}
+#newShuttleOrder{background:#007fa8!important;color:#fff!important;border:1px solid #007fa8!important}
+#ordersBody .order-document-actions [data-order-print]{background:#e1f3f5!important;color:#075d67!important;border:1px solid #92d0d5!important}
+#ordersBody .order-document-actions [data-order-pdf]{background:#eee8fb!important;color:#56358d!important;border:1px solid #c7b6ea!important}
+button:not(.primary):not(.secondary):not(.action):not(.text-btn):not(.filter):not(.nav):not(.bell):not(.close):not(#newShuttleOrder):not(#logoutBtn):not(#loginBtn):not(#signupBtn):not([data-order-print]):not([data-order-pdf]):not([data-admin-delete]):not(.leaflet-control-zoom-in):not(.leaflet-control-zoom-out){background:#f3f5f7!important;color:#495564!important;border:1px solid #d2d9e1!important}
+</style>
