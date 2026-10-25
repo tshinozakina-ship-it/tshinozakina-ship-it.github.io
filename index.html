@@ -808,22 +808,33 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
 #ordersBody .order-document-actions .action{white-space:normal;line-height:1.35;padding:10px 12px}
 @media(max-width:700px){#ordersBody .order-document-actions{display:grid;grid-template-columns:1fr}#ordersBody .order-document-actions .action{width:100%}}
 @media print{
- @page{size:A4;margin:15mm}
+ @page{size:A4 portrait;margin:8mm}
  html,body{background:#fff!important}
  body>*:not(#wedrivePrintDocument){display:none!important}
- #wedrivePrintDocument{display:block!important;position:static!important;width:100%!important;color:#222!important;font:12pt/1.65 "Noto Sans JP",sans-serif!important}
- #wedrivePrintDocument *{visibility:visible!important}
- #wedrivePrintDocument h1{margin:0 0 4mm;font-size:22pt;text-align:center}
- #wedrivePrintDocument .print-subtitle{text-align:center;margin-bottom:7mm;color:#555}
- #wedrivePrintDocument .print-meta{display:flex;justify-content:space-between;border-bottom:2px solid #315e4c;padding-bottom:3mm;margin-bottom:5mm}
- #wedrivePrintDocument table{width:100%;border-collapse:collapse;white-space:normal}
- #wedrivePrintDocument th,#wedrivePrintDocument td{border:1px solid #aeb8b0;padding:3mm;vertical-align:top;font-size:11pt}
- #wedrivePrintDocument th{width:30%;background:#eef3ef!important;color:#24352f;font-weight:700;text-align:left;-webkit-print-color-adjust:exact;print-color-adjust:exact}
- #wedrivePrintDocument td{overflow-wrap:anywhere}
- #wedrivePrintDocument .print-notes{white-space:pre-wrap;min-height:10mm}
- #wedrivePrintDocument .print-signatures{display:grid;grid-template-columns:1fr 1fr;gap:8mm;margin-top:10mm}
- #wedrivePrintDocument .print-signature{border:1px solid #aeb8b0;min-height:24mm;padding:3mm}
- #wedrivePrintDocument .print-footer{margin-top:7mm;color:#555;font-size:9pt}
+ #wedrivePrintDocument{display:block!important;position:static!important;width:100%!important;color:#222!important;font:9.5pt/1.3 "Noto Sans JP",sans-serif!important;break-inside:avoid!important}
+ #wedrivePrintDocument *{visibility:visible!important;box-sizing:border-box}
+ #wedrivePrintDocument .sheet-head{display:grid;grid-template-columns:1fr 2fr 1fr;align-items:end;border-bottom:2px solid #26342f;padding-bottom:2mm;margin-bottom:3mm}
+ #wedrivePrintDocument .sheet-no{font-size:8pt;color:#4b5550}
+ #wedrivePrintDocument h1{margin:0;text-align:center;font-size:17pt;letter-spacing:.08em}
+ #wedrivePrintDocument .sheet-owner{text-align:right;font-size:8pt}
+ #wedrivePrintDocument .sheet-sub{display:flex;justify-content:center;gap:2mm;margin:1mm 0 3mm;font-size:8pt}
+ #wedrivePrintDocument .sheet-table{width:100%;border-collapse:collapse;table-layout:fixed;margin:0 0 2.5mm;white-space:normal}
+ #wedrivePrintDocument .sheet-table th,#wedrivePrintDocument .sheet-table td{border:1px solid #68726d;padding:1.7mm 2mm;vertical-align:middle;font-size:9.5pt;overflow-wrap:anywhere}
+ #wedrivePrintDocument .sheet-table th{background:#eef2ef!important;color:#24352f;font-weight:700;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ #wedrivePrintDocument .event-table th{width:17%}
+ #wedrivePrintDocument .route-table th:first-child{width:18%}
+ #wedrivePrintDocument .route-table th:nth-child(2){width:58%}
+ #wedrivePrintDocument .route-table th:nth-child(3){width:24%}
+ #wedrivePrintDocument .route-table td{height:9.6mm}
+ #wedrivePrintDocument .section-title{font-weight:700;margin:1.5mm 0 1mm;font-size:9.5pt}
+ #wedrivePrintDocument .small-note{font-size:7pt;color:#4b5550;margin:0 0 1mm}
+ #wedrivePrintDocument .memo{min-height:50mm;vertical-align:top!important;white-space:pre-wrap;padding:2mm!important;border:1px solid #68726d!important}
+ #wedrivePrintDocument .fill-line{display:inline-block;min-width:20mm;border-bottom:1px solid #87908b;height:4mm;vertical-align:bottom}
+ #wedrivePrintDocument .check{display:inline-block;width:3.2mm;height:3.2mm;border:1px solid #34423b;vertical-align:middle;margin:0 1mm 0 2mm;position:relative}
+ #wedrivePrintDocument .check.checked:after{content:"";position:absolute;left:.8mm;top:-.1mm;width:1.1mm;height:2mm;border-right:.5mm solid #26342f;border-bottom:.5mm solid #26342f;transform:rotate(42deg)}
+ #wedrivePrintDocument .sign-row{display:grid;grid-template-columns:1fr 1fr;gap:3mm;margin-top:2mm}
+ #wedrivePrintDocument .sign-box{border:1px solid #68726d;min-height:17mm;padding:1.5mm 2mm}
+ #wedrivePrintDocument .print-footer{margin-top:2mm;padding-top:1.5mm;border-top:2px solid #26342f;text-align:center;color:#3e4943;font-size:7pt}
 }
 </style>
 <script>
@@ -835,17 +846,26 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  const isPlannerView=()=>role.value==='式場プランナー';
  const printableStatuses=new Set(['accepted','arrange','done']);
  function currentVisibleOrders(){let list=orders;if(role.value==='バス会社')list=orders.filter(o=>o.company==='株式会社　忠助'||(o.status==='pending'&&!o.company));return list.filter(o=>activeFilter==='all'||(activeFilter==='pending'?['pending','arrange'].includes(o.status):o.status==='accepted'));}
- function addPrintButtons(){const visible=currentVisibleOrders();body.querySelectorAll('tr').forEach((row,index)=>{const existing=row.querySelector('.order-document-actions');const order=visible[index];if(!isPlannerView()||!order||!printableStatuses.has(order.status)){if(existing)existing.remove();return;}const cell=row.lastElementChild;if(!cell)return;if(existing&&existing.dataset.orderId===String(order.id))return;if(existing)existing.remove();const actions=document.createElement('div');actions.className='order-document-actions';actions.dataset.orderId=String(order.id);[['orderPrint','受注確認書を印刷'],['orderPdf','受注確認書をPDFで保存']].forEach(([kind,label])=>{const button=document.createElement('button');button.type='button';button.className='action';button.dataset[kind]=String(order.id);button.textContent=label;button.setAttribute('aria-label',(order.venue||'送迎依頼')+'の'+label);actions.appendChild(button);});cell.appendChild(actions);});}
+ function addPrintButtons(){const visible=currentVisibleOrders();body.querySelectorAll('tr').forEach((row,index)=>{const existing=row.querySelector('.order-document-actions');const order=visible[index];if(!isPlannerView()||!order||!printableStatuses.has(order.status)){if(existing)existing.remove();return;}const cell=row.lastElementChild;if(!cell)return;if(existing&&existing.dataset.orderId===String(order.id))return;if(existing)existing.remove();const actions=document.createElement('div');actions.className='order-document-actions';actions.dataset.orderId=String(order.id);[['orderPrint','バス手配依頼書を印刷'],['orderPdf','バス手配依頼書をPDFで保存']].forEach(([kind,label])=>{const button=document.createElement('button');button.type='button';button.className='action';button.dataset[kind]=String(order.id);button.textContent=label;button.setAttribute('aria-label',(order.venue||'送迎依頼')+'の'+label);actions.appendChild(button);});cell.appendChild(actions);});}
  const previousRender=render;render=function(...args){const result=previousRender.apply(this,args);addPrintButtons();return result};
  new MutationObserver(addPrintButtons).observe(body,{childList:true,subtree:true});
  function printableOrder(order,format='print'){
   if(!isPlannerView()||!printableStatuses.has(order.status)){toast('バス会社の受注後に印刷できます');return;}
-  const stops=(order.routeStops||[]).map((stop,index)=>'経由地'+(index+1)+'：'+(stop.location||'')+'（'+(stop.arrivalTime||'時間未設定')+' 到着）').join('\n')||'なし';
-  const status=({accepted:'バス会社受注済み',arrange:'車両・乗務員の手配中',done:'運行完了'})[order.status]||'受注済み';
-  const rows=[['依頼番号',order.id||''],['式場・案件',order.venue||''],['プランナー担当者',order.contact||'未記入'],['運行日',order.date||''],['出発地・出発時刻',(order.from||'未入力')+' ／ '+(order.time||'未入力')+' 出発'],['経由地・到着時刻',stops],['到着地・到着予定時刻',(order.to||'未入力')+' ／ '+(order.arrivalTime||'未設定')+' 到着予定'],['希望車種・乗車人数',(order.vehicle||'未指定')+' ／ '+(order.count||'未入力')+'名'],['要望共有事項',order.requirements||'特になし'],['バス会社',order.company||'株式会社 忠助'],['手配車両',order.assignedVehicle||'受注済み・車両未確定'],['乗務員',order.driver||'未確定'],['受注・手配状況',status]];
-  const printedAt=new Date().toLocaleString('ja-JP',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
-  documentSheet.innerHTML='<div class="print-meta"><b>WEDRIVE　送迎手配</b><span>印刷日時：'+esc(printedAt)+'</span></div><h1>受注確認書</h1><div class="print-subtitle">式場プランナー様控え</div><table><tbody>'+rows.map(([label,value])=>'<tr><th>'+esc(label)+'</th><td'+(['経由地・到着時刻','要望共有事項'].includes(label)?' class="print-notes"':'')+'>'+esc(value)+'</td></tr>').join('')+'</tbody></table><div class="print-signatures"><div class="print-signature">式場プランナー　確認日・署名<br><br></div><div class="print-signature">バス会社　確認日・署名<br><br></div></div><div class="print-footer">印刷時点でWEDRIVEに登録されている内容です。ご確認・お問い合わせ：式場 093-383-3920 ／ バス会社（株式会社 忠助）092-552-4451（テスト）</div>';
-  const previousTitle=document.title;if(format==='pdf'){document.title='受注確認書_'+String(order.id||'送迎依頼').replaceAll('-','');toast('印刷画面で保存先に「PDFとして保存」を選んでください。');}
+  const notes=String(order.requirements||'');
+  const weddingLine=(notes.match(/【結婚式情報】([^\r\n]*)/)||[])[1]||notes;
+  const wedding=Object.fromEntries(weddingLine.split(/[　 ]*／[　 ]*/).map(part=>{const i=part.indexOf('：');return i<0?['','']:[part.slice(0,i).trim(),part.slice(i+1).trim()]}).filter(([key])=>key));
+  const value=(key,fallback='')=>wedding[key]&&wedding[key]!=='未入力'?wedding[key]:fallback;
+  const side=(notes.match(/【送迎区分】([^\r\n]*)/)||[])[1]||'';
+  const unitCount=(notes.match(/【手配台数】([^\r\n]*)/)||[])[1]||'';
+  const requirements=notes.replace(/【結婚式情報】/g,'').replace(/【送迎区分】[^\r\n]*/g,'').replace(/【手配台数】[^\r\n]*/g,'').replace(/【車両番号】[^\r\n]*/g,'').replace(/(?:結婚式日|ご両家名|新郎名|新婦名|会場名|挙式時間|披露宴時間)：[^　／\r\n]+/g,'').replace(/[　／]+/g,' ').trim();
+  const cleanRequirements=requirements.replace(/^[\s：]+/,'').trim();
+  const stops=(order.routeStops||[]).slice(0,3);
+  const routeRows=[['お迎え',order.from||'','出発',order.time||''],...Array.from({length:3},(_,i)=>['経由地 '+(i+1),stops[i]?.location||'','到着',stops[i]?.arrivalTime||'']),['お送り',order.to||'','到着予定',order.arrivalTime||'']];
+  const checkbox=(checked)=>'<span class="check'+(checked?' checked':'')+'" aria-hidden="true"></span>';
+  const weddingDate=value('結婚式日',order.date||'');
+  const printedAt=new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'});
+  documentSheet.innerHTML='<div class="sheet-head"><div class="sheet-no">No. '+esc(String(order.id||''))+'</div><h1>バス手配依頼書</h1><div class="sheet-owner">担当：'+esc(order.contact||'')+'</div></div><div class="sheet-sub">'+checkbox(side==='新郎側')+'ご新郎側 '+checkbox(side==='新婦側')+'ご新婦側</div><table class="sheet-table event-table"><tbody><tr><th>結婚式日</th><td>'+esc(weddingDate)+'</td><th>式場・案件名</th><td>'+esc(order.venue||'')+'</td></tr><tr><th>ご両家名</th><td colspan="3">'+esc(value('ご両家名'))+'</td></tr><tr><th>新郎・新婦</th><td colspan="3">ご新郎 '+esc(value('新郎名'))+' 様　／　ご新婦 '+esc(value('新婦名'))+' 様</td></tr><tr><th>会場名</th><td>'+esc(value('会場名'))+'</td><th>車種</th><td>'+esc(order.vehicle||'')+'</td></tr><tr><th>挙式時間</th><td>'+esc(value('挙式時間','＿＿：＿＿'))+'</td><th>披露宴時間</th><td>'+esc(value('披露宴時間','＿＿：＿＿'))+'</td></tr><tr><th>乗車予定人数</th><td>'+esc(order.count||'')+' 名</td><th>手配台数</th><td>'+esc(unitCount||'1台')+'</td></tr></tbody></table><div class="section-title">送迎行程</div><p class="small-note">出発地・到着地、経由地は依頼時点の内容です。時刻は日本時間表記です。</p><table class="sheet-table route-table"><thead><tr><th>区分</th><th>場所</th><th>時刻</th></tr></thead><tbody>'+routeRows.map(([label,place,timeLabel,time])=>'<tr><th>'+esc(label)+'</th><td>'+esc(place)+'</td><td>'+esc(timeLabel)+'　'+esc(time)+'</td></tr>').join('')+'</tbody></table><table class="sheet-table"><tbody><tr><th>手配車両</th><td>'+esc(order.assignedVehicle||'会社記入欄')+'</td><th>乗務員</th><td>'+esc(order.driver||'会社記入欄')+'</td></tr><tr><th>代表者のお名前</th><td><span class="fill-line"></span> 様</td><th>新郎・新婦とのご関係</th><td><span class="fill-line"></span></td></tr><tr><th>代表者のご連絡先<br>（携帯電話）</th><td colspan="3"><span class="fill-line" style="min-width:55mm"></span>　ご両親の乗車 '+checkbox(false)+'有 '+checkbox(false)+'無</td></tr><tr><th>バスの表示名</th><td colspan="3">'+checkbox(side==='新郎側')+'ご新郎家名 '+checkbox(side==='新婦側')+'ご新婦家名 '+checkbox(side==='両家')+'ご両家名</td></tr></tbody></table><div class="section-title">要望共有事項</div><div class="sheet-table memo">'+esc(cleanRequirements||'')+'</div><div class="sign-row"><div class="sign-box">バス会社　確認・連絡事項：</div><div class="sign-box">式場プランナー　確認：</div></div><div class="print-footer">WEDRIVE　送迎依頼控え　・　印刷日：'+esc(printedAt)+'　・　式場 093-383-3920　／　株式会社 忠助 092-552-4451（テスト）</div>';
+  const previousTitle=document.title;if(format==='pdf'){document.title='バス手配依頼書_'+String(order.id||'送迎依頼').replaceAll('-','');toast('印刷画面で保存先に「PDFとして保存」を選んでください。');}
   documentSheet.style.display='block';const cleanup=()=>{documentSheet.style.display='none';document.title=previousTitle;window.removeEventListener('afterprint',cleanup)};window.addEventListener('afterprint',cleanup);window.print();window.setTimeout(cleanup,1000);
  }
  document.addEventListener('click',event=>{const button=event.target instanceof Element?event.target.closest('[data-order-print],[data-order-pdf]'):null;if(!button)return;event.preventDefault();event.stopPropagation();const orderId=button.dataset.orderPrint||button.dataset.orderPdf,order=orders.find(item=>String(item.id)===orderId);if(order)printableOrder(order,button.hasAttribute('data-order-pdf')?'pdf':'print');},true);
