@@ -1202,3 +1202,16 @@ button.close,button.bell{min-width:48px!important;min-height:48px!important;disp
  refreshOrders();
 })();
 </script>
+
+<script>
+(()=>{
+ const rows=document.getElementById('orgDirectoryRows');
+ if(!rows||typeof window.wedriveRefreshSetup!=='function')return;
+ let companies=[];
+ function render(){if(!companies.length){rows.innerHTML='<p style="margin:0;padding:14px;color:#59685f">登録済みのバス会社はありません。</p>';return;}rows.innerHTML='<div style="display:grid;gap:10px;padding:12px">'+companies.map(c=>'<article style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px;border:1px solid #cbd8ce;border-radius:12px;background:#fff"><div><strong style="display:block;font-size:18px;color:#263b30">'+esc(c.name)+'</strong><span style="font-size:13px;color:#66736a">バス会社</span></div>'+(appRole==='運行管理スタッフ'?'<button type="button" data-delete-company="'+esc(c.id)+'" style="min-height:48px;padding:10px 18px;border:1px solid #b94b43;border-radius:9px;background:#fff1ef;color:#9b352d;font-weight:700;font-size:16px">会社を削除</button>':'')+'</article>').join('')+'</div>';window.__wedriveBusCompanies=companies;}
+ async function refresh(){if(typeof appRole==='undefined'||appRole!=='運行管理スタッフ')return;const {data,error}=await supabaseClient.from('organizations').select('id,name,type').eq('type','bus_company').order('name');if(error){console.error(error);rows.innerHTML='<p style="margin:0;padding:14px;color:#9b352d">会社一覧を読み込めませんでした。ページを再読み込みしてください。</p>';return;}companies=data||[];render();}
+ const previous=window.wedriveRefreshSetup;window.wedriveRefreshSetup=async function(...args){const result=await previous.apply(this,args);await refresh();return result;};
+ rows.addEventListener('click',async event=>{const button=event.target.closest('[data-delete-company]');if(!button)return;if(appRole!=='運行管理スタッフ'){toast('会社の削除は管理者のみ行えます');return;}const company=companies.find(c=>c.id===button.dataset.deleteCompany);if(!company)return;if(!confirm('「'+company.name+'」を削除しますか？利用者・依頼・車両・乗務員などに紐づく会社は削除できません。'))return;button.disabled=true;button.textContent='削除中…';const {data,error}=await supabaseClient.from('organizations').delete().eq('id',company.id).select('id');if(error||!data?.length){console.error(error);button.disabled=false;button.textContent='会社を削除';toast(error?.code==='23503'?'この会社には利用者・依頼・車両・乗務員などの記録があるため削除できません。':'会社を削除できませんでした。管理者権限または紐づくデータをご確認ください。');return;}await window.wedriveRefreshSetup();toast('会社を削除しました');});
+ supabaseClient.auth.onAuthStateChange(()=>setTimeout(()=>void refresh(),250));setTimeout(()=>void refresh(),300);
+})();
+</script>
