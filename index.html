@@ -1146,20 +1146,20 @@ button.close,button.bell{min-width:48px!important;min-height:48px!important;disp
  if(!role||!ordersBody||!ordersPanel)return;
  const isBus=()=>role.value==='バス会社'&&appRole==='バス会社';
  const registration=document.createElement('section');registration.id='busDriverRegistration';registration.className='panel';registration.hidden=true;registration.style.cssText='margin:16px 0;border:2px solid #b9c9da;background:#f7f9fc';
- registration.innerHTML='<div class="panel-head"><div><h2>自社の運転手を登録</h2><p>登録した運転手は依頼の手配画面から選べます。位置情報共有には、このメールアドレスで運転手本人がWEDRIVEに登録し、管理者が役割を設定する必要があります。登録後の変更・利用停止は運行管理者が行います。</p></div></div><div class="form-grid"><div class="field"><label for="busDriverName">運転手のお名前 *</label><input id="busDriverName" autocomplete="name" maxlength="100" placeholder="例：山田 太郎" required></div><div class="field"><label for="busDriverEmail">運転手のメールアドレス *</label><input id="busDriverEmail" type="email" autocomplete="email" maxlength="254" placeholder="運転手本人のメールアドレス" required></div><div class="field"><label for="busDriverPhone">電話番号（任意）</label><input id="busDriverPhone" type="tel" autocomplete="tel" maxlength="40" placeholder="例：090-1234-5678"></div><div class="field full"><button type="button" class="primary" id="busSaveDriver">運転手を登録</button><p id="busDriverMessage" role="status" style="margin:0;color:#53625a"></p></div></div>';
+ registration.innerHTML='<div class="panel-head"><div><h2>自社の運転手を登録</h2><p>登録した運転手は依頼の手配画面から選べます。位置情報共有には、このメールアドレスで運転手本人がWEDRIVEに登録し、管理者が役割を設定する必要があります。登録後の変更・利用停止は運行管理者が行います。</p></div></div><div class="form-grid"><div class="field"><label for="busDriverName">運転手のお名前 *</label><input id="busDriverName" autocomplete="name" maxlength="100" placeholder="例：山田 太郎" required></div><div class="field"><label for="busDriverEmail">運転手のメールアドレス *</label><input id="busDriverEmail" type="email" autocomplete="email" maxlength="254" placeholder="運転手本人のメールアドレス" required></div><div class="field"><label for="busDriverPhone">電話番号 *</label><input id="busDriverPhone" type="tel" autocomplete="tel" maxlength="40" placeholder="例：090-1234-5678" required></div><div class="field full"><button type="button" class="primary" id="busSaveDriver">運転手を登録</button><p id="busDriverMessage" role="status" style="margin:0;color:#53625a"></p></div></div>';
  ordersPanel.insertAdjacentElement('afterend',registration);
  const saveButton=registration.querySelector('#busSaveDriver'),nameInput=registration.querySelector('#busDriverName'),phoneInput=registration.querySelector('#busDriverPhone'),emailInput=registration.querySelector('#busDriverEmail'),message=registration.querySelector('#busDriverMessage');
  function syncRegistration(){registration.hidden=!isBus()}
  async function registerDriver(){
   if(!isBus()){message.textContent='バス会社アカウントでログインしてください。';return}
-  const name=nameInput.value.trim(),email=emailInput.value.trim().toLowerCase();if(!name){nameInput.focus();message.textContent='運転手のお名前を入力してください。';return}if(!emailInput.value.trim()||!emailInput.checkValidity()){emailInput.focus();message.textContent='有効なメールアドレスを入力してください。';return}
+  const name=nameInput.value.trim(),email=emailInput.value.trim().toLowerCase();if(!name){nameInput.focus();message.textContent='運転手のお名前を入力してください。';return}if(!emailInput.value.trim()||!emailInput.checkValidity()){emailInput.focus();message.textContent='有効なメールアドレスを入力してください。';return}if(!phoneInput.value.trim()){phoneInput.focus();message.textContent='電話番号を入力してください。';return}
   if(!appUser?.id){message.textContent='ログイン状態を確認できません。再読み込みしてください。';return}
   saveButton.disabled=true;message.textContent='登録しています…';
   try{
    const {data:profile,error:profileError}=await supabaseClient.from('profiles').select('organization_id').eq('id',appUser.id).maybeSingle();
    if(profileError)throw profileError;
    if(!profile?.organization_id)throw new Error('アカウントに所属会社が設定されていません。運行管理者に確認してください。');
-   const {error}=await supabaseClient.rpc('wedrive_register_driver',{p_organization_id:profile.organization_id,p_name:name,p_phone:phoneInput.value.trim()||null,p_email:email});
+   const {error}=await supabaseClient.rpc('wedrive_register_driver',{p_organization_id:profile.organization_id,p_name:name,p_phone:phoneInput.value.trim(),p_email:email});
    if(error)throw error;
    nameInput.value='';emailInput.value='';phoneInput.value='';message.textContent='登録しました。依頼の「運転手を手配」から選べます。';
    if(typeof toast==='function')toast('運転手を登録しました');
