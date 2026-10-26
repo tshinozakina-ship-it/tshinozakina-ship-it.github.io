@@ -1272,3 +1272,26 @@ button.close,button.bell{min-width:48px!important;min-height:48px!important;disp
 <style id="wedrive-role-visibility-safety">
 .welcome-admin-actions>#newRequest[hidden],.welcome-admin-actions>#newRequest.role-hidden,.welcome-admin-actions>#newShuttleOrder[hidden],.welcome-admin-actions>#newShuttleOrder.role-hidden,.welcome-admin-actions>#openAdminResources[hidden],.welcome-admin-actions>#openAdminResources.role-hidden,#ordersBody td:nth-child(6)>button[hidden],#ordersBody td:nth-child(6)>button.role-hidden{display:none!important}
 </style>
+
+<style id="wedrive-desktop-layout">
+@media(min-width:1001px){
+ .content{width:100%;max-width:1540px;padding:32px clamp(24px,3vw,50px) 56px}
+ .welcome{gap:30px;margin-bottom:28px}
+ .welcome>div:first-child{flex:1;min-width:0;max-width:760px}
+ .welcome-admin-actions{flex:0 1 420px;width:min(420px,42%);gap:12px!important}
+ .metrics{gap:16px;margin-bottom:24px}
+ .grid{grid-template-columns:minmax(0,1.7fr) minmax(0,0.8fr);gap:20px}
+ .panel,.metric{min-width:0}
+ .table-wrap{overflow-x:auto}
+}
+@media(min-width:1001px) and (max-width:1260px){
+ .grid{grid-template-columns:minmax(0,1fr)}
+ .sidepanel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+ .sidepanel .panel-head{align-items:flex-start;gap:12px;margin-bottom:16px}
+ .lower{grid-template-columns:minmax(0,1fr)}
+}
+@media(min-width:1500px){
+ .content{max-width:1600px}
+ .grid{grid-template-columns:minmax(0,1.8fr) minmax(320px,0.8fr)}
+}
+</style>
