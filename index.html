@@ -1072,7 +1072,7 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  const setup=()=>{
   const launch=document.getElementById('newRequest'),roleSelect=document.getElementById('role');
   if(!launch||!roleSelect)return false;
-  const isAdmin=()=>typeof appRole!=='undefined'&&appRole==='運行管理スタッフ'&&roleSelect.value==='運行管理スタッフ';
+  const isAdmin=()=>typeof appRole!=='undefined'&&appRole==='運行管理スタッフ';
   let button=document.getElementById('newShuttleOrder');
   if(!button){button=document.createElement('button');button.type='button';button.id='newShuttleOrder';button.className='primary';button.textContent='＋ シャトルバスを依頼';button.style.cssText='display:block;width:100%;min-height:58px;margin-top:10px;background:#007FA8;color:#FFFFFF;font-size:17px;font-weight:700';launch.insertAdjacentElement('afterend',button);}
   let modal=document.getElementById('shuttleOrderModal');
@@ -1241,7 +1241,7 @@ button.close,button.bell{min-width:48px!important;min-height:48px!important;disp
   const shuttle=form.id==='shuttleOrderForm',companyId=form.querySelector('[name="bus_company_id"]')?.value;
   if(!companyId){toast('依頼先のバス会社を選択してください');form.querySelector('[name="bus_company_id"]')?.focus();return}
   if(shuttle){
-   if(document.getElementById('role').value!=='運行管理スタッフ'||appRole!=='運行管理スタッフ'){toast('シャトルバスの発注は運行管理者のみです');return}
+   if(appRole!=='運行管理スタッフ'){toast('シャトルバスの発注は運行管理者のみです');return}
    const date=form.elements.date.value,start=form.elements.startTime.value,end=form.elements.endTime.value,count=Number(form.elements.busCount.value);if(end<=start){toast('運行終了時刻は開始時刻より後にしてください');return}if(!Number.isInteger(count)||count<1||count>10){toast('台数は1～10台で入力してください');return}
    const venueSelect=typeof wedriveVenueSelect!=='undefined'?wedriveVenueSelect:document.querySelector('#requestForm [name="venue"]'),venueOption=venueSelect&&Array.from(venueSelect.options).find(o=>/THE CENTRAL PARK KOKURA|CENTRAL PARK|CPK/i.test(o.textContent));if(!venueOption){toast('式場「THE CENTRAL PARK KOKURA」が見つかりません。管理者に確認してください');return}
    const {data:{session}}=await supabaseClient.auth.getSession();if(!session){toast('ログインし直してください');return}
