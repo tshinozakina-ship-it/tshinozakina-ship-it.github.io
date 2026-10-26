@@ -1303,3 +1303,28 @@ button.close,button.bell{min-width:48px!important;min-height:48px!important;disp
 #busDriverRegistration .field input,#busDriverRegistration .field select,#busDriverRegistration .field textarea,#busDriverRegistration .field button{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
 @media(max-width:1100px){#busDriverRegistration .form-grid{grid-template-columns:minmax(0,1fr)!important}}
 </style>
+
+<style id="wedrive-bus-orders-no-horizontal-scroll">
+#ordersPanel.bus-orders-card-view .table-wrap{overflow:visible!important;max-width:100%}
+#ordersPanel.bus-orders-card-view table{display:block;width:100%;max-width:100%;white-space:normal;table-layout:fixed}
+#ordersPanel.bus-orders-card-view thead{display:none}
+#ordersPanel.bus-orders-card-view tbody{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0}
+#ordersPanel.bus-orders-card-view tbody tr{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0;padding:16px;margin:0;border:1px solid var(--line);border-radius:10px;background:#fff}
+#ordersPanel.bus-orders-card-view tbody td{display:block;min-width:0;width:100%;padding:6px 4px;border:0;white-space:normal;overflow-wrap:anywhere}
+#ordersPanel.bus-orders-card-view tbody td:nth-child(2)::before{content:"運行日・時間";display:block;color:var(--muted);font-size:12px;margin-bottom:3px}
+#ordersPanel.bus-orders-card-view tbody td:nth-child(3)::before{content:"区間・車種";display:block;color:var(--muted);font-size:12px;margin-bottom:3px}
+#ordersPanel.bus-orders-card-view tbody td:nth-child(4)::before{content:"台数・乗車人数";display:block;color:var(--muted);font-size:12px;margin-bottom:3px}
+#ordersPanel.bus-orders-card-view tbody td:nth-child(5)::before{content:"状況";display:block;color:var(--muted);font-size:12px;margin-bottom:3px}
+#ordersPanel.bus-orders-card-view tbody td:nth-child(6){min-width:0}
+@media(max-width:1100px){#ordersPanel.bus-orders-card-view tbody{grid-template-columns:minmax(0,1fr)}}
+</style>
+<script>
+(()=>{
+ const role=document.getElementById("role"),panel=document.getElementById("ordersPanel");
+ if(!role||!panel)return;
+ const sync=()=>panel.classList.toggle("bus-orders-card-view",role.value==="バス会社");
+ role.addEventListener("change",sync);
+ new MutationObserver(sync).observe(role,{attributes:true,attributeFilter:["style","disabled"]});
+ sync();
+})();
+</script>
