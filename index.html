@@ -1475,3 +1475,46 @@ button.close,button.bell{min-width:48px!important;min-height:48px!important;disp
  sync();
 })();
 </script>
+
+
+<script id="wedrive-bus-greeting-role-race-fix">
+(()=>{
+ const role=document.getElementById("role");
+ if(!role||typeof supabaseClient==="undefined")return;
+ let busy=false,lastUserId="";
+ async function syncBusCompanyGreeting(){
+  if(busy||role.value!=="バス会社")return;
+  busy=true;
+  try{
+   const {data:{session}}=await supabaseClient.auth.getSession();
+   if(!session?.user?.id)return;
+   if(lastUserId&&lastUserId!==session.user.id)window.wedriveBusCompanyName="";
+   lastUserId=session.user.id;
+   let organizationId="";
+   const {data:membership,error:membershipError}=await supabaseClient.from("wedrive_user_roles").select("organization_id").eq("user_id",session.user.id).maybeSingle();
+   if(!membershipError&&membership?.organization_id)organizationId=membership.organization_id;
+   if(!organizationId){
+    const {data:profile,error:profileError}=await supabaseClient.from("profiles").select("organization_id").eq("id",session.user.id).maybeSingle();
+    if(!profileError&&profile?.organization_id)organizationId=profile.organization_id;
+   }
+   if(!organizationId)return;
+   const {data:organization,error}=await supabaseClient.from("organizations").select("name").eq("id",organizationId).maybeSingle();
+   if(error||!organization?.name)return;
+   window.wedriveBusCompanyName=String(organization.name).trim();
+   if(typeof updateGreeting==="function")updateGreeting();
+  }catch(error){console.warn("会社名を挨拶に反映できませんでした",error)}
+  finally{busy=false}
+ }
+ role.addEventListener("change",()=>{if(role.value==="バス会社"){window.wedriveBusCompanyName="";void syncBusCompanyGreeting()}});
+ supabaseClient.auth.onAuthStateChange(()=>{window.wedriveBusCompanyName="";lastUserId="";setTimeout(syncBusCompanyGreeting,0)});
+ let attempts=0;
+ const retry=setInterval(()=>{
+  if(role.value!=="バス会社")return;
+  if(window.wedriveBusCompanyName){clearInterval(retry);return}
+  void syncBusCompanyGreeting();
+  if(++attempts>=30){clearInterval(retry);setInterval(syncBusCompanyGreeting,10000)}
+ },500);
+ window.addEventListener("focus",syncBusCompanyGreeting);
+ document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")void syncBusCompanyGreeting()});
+})();
+</script>
