@@ -1453,3 +1453,25 @@ button.close,button.bell{min-width:48px!important;min-height:48px!important;disp
 #ordersBody td:nth-child(6) .order-document-actions{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important}
 #ordersBody td:nth-child(6) .order-document-actions>button{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
 </style>
+
+
+<script id="wedrive-bus-company-order-label">
+(()=>{
+ const role=document.getElementById("role"),body=document.getElementById("ordersBody");
+ if(!role||!body)return;
+ const sync=()=>{
+  const isBusCompany=role.value==="バス会社";
+  body.querySelectorAll("button").forEach(button=>{
+   if(!button.dataset.orderLabelOriginal)button.dataset.orderLabelOriginal=button.innerHTML;
+   const original=button.dataset.orderLabelOriginal;
+   const updated=isBusCompany?original.replaceAll("送迎発注書","送迎受注書"):original;
+   if(button.innerHTML!==updated)button.innerHTML=updated;
+   const aria=button.getAttribute("aria-label");
+   if(aria){const next=isBusCompany?aria.replaceAll("送迎発注書","送迎受注書"):aria.replaceAll("送迎受注書","送迎発注書");if(aria!==next)button.setAttribute("aria-label",next)}
+  });
+ };
+ role.addEventListener("change",sync);
+ new MutationObserver(sync).observe(body,{childList:true,subtree:true,characterData:true});
+ sync();
+})();
+</script>
