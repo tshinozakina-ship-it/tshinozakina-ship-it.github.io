@@ -1368,3 +1368,41 @@ button.close,button.bell{min-width:48px!important;min-height:48px!important;disp
   <style id="wedrive-driver-form-browser-fit">@media(max-width:1200px){#busDriverRegistration .form-grid{grid-template-columns:1fr!important}}</style>
 <style id="wedrive-driver-form-one-column">#busDriverRegistration .form-grid{grid-template-columns:1fr!important}</style>
 <style id="wedrive-pc-header-logout-fit">@media(min-width:701px) and (max-width:1300px){.top{height:auto!important;min-height:76px!important;flex-wrap:wrap!important;align-items:center!important;row-gap:8px!important;padding:8px 18px!important}.top-right{width:100%!important;min-width:0!important;max-width:100%!important;flex:1 1 100%!important;justify-content:flex-end!important;gap:8px!important}.top-right .today{margin-right:auto!important;white-space:nowrap!important}.top-right .role{flex:0 1 180px!important;width:180px!important;max-width:180px!important;min-width:120px!important}.top-right #logoutBtn:not([hidden]){display:inline-flex!important;visibility:visible!important;flex:0 0 auto!important;min-width:94px!important;max-width:none!important;white-space:nowrap!important}}</style>
+
+<script id="wedrive-bus-orders-company-id-fix">
+(()=>{
+ const roleEl=document.getElementById('role');
+ if(!roleEl||typeof supabaseClient==='undefined')return;
+ let busy=false;
+ const normalizeName=value=>String(value||'').normalize('NFKC').replace(/[\s　]/g,'').toLowerCase();
+ const matchesCompany=order=>String(order?.assignment?.company_id||'')===String(window.wedriveBusCompanyId||'')||Boolean(window.wedriveBusCompanyName&&normalizeName(order?.company)===normalizeName(window.wedriveBusCompanyName));
+ const priorRender=render;
+ render=function(...args){
+  if(roleEl.value==='バス会社'&&window.wedriveBusCompanyId&&typeof orders!=='undefined')orders.forEach(order=>{if(matchesCompany(order))order.company='株式会社　忠助'});
+  return priorRender.apply(this,args);
+ };
+ async function syncCompanyOrders(){
+  if(busy||roleEl.value!=='バス会社')return;
+  busy=true;
+  try{
+   const {data:{session}}=await supabaseClient.auth.getSession();
+   if(!session?.user?.id)return;
+   const {data:profile,error:profileError}=await supabaseClient.from('profiles').select('organization_id').eq('id',session.user.id).maybeSingle();
+   if(profileError||!profile?.organization_id)return;
+   window.wedriveBusCompanyId=String(profile.organization_id);
+   const {data:organization}=await supabaseClient.from('organizations').select('name').eq('id',profile.organization_id).maybeSingle();
+   if(organization?.name)window.wedriveBusCompanyName=String(organization.name).trim();
+   const {data:companyRequests,error}=await supabaseClient.from('transport_requests').select('id').eq('bus_company_id',profile.organization_id);
+   if(!error&&typeof orders!=='undefined'){
+    const ownIds=new Set((companyRequests||[]).map(row=>String(row.id)));
+    orders.forEach(order=>{if(ownIds.has(String(order.id))||matchesCompany(order))order.company='株式会社　忠助'});
+   }
+   if(typeof render==='function')render();
+  }catch(error){console.warn('会社の依頼一覧を更新できませんでした',error)}
+  finally{busy=false}
+ }
+ roleEl.addEventListener('change',()=>{if(roleEl.value==='バス会社')setTimeout(syncCompanyOrders,250)});
+ supabaseClient.auth.onAuthStateChange(()=>setTimeout(syncCompanyOrders,300));
+ setTimeout(syncCompanyOrders,1200);
+})();
+</script>
