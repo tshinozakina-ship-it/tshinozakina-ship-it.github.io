@@ -1137,3 +1137,68 @@ button.close,button.bell{min-width:48px!important;min-height:48px!important;disp
 .leaflet-control-zoom-in,.leaflet-control-zoom-out{width:44px!important;height:44px!important;line-height:42px!important}
 @media(max-width:1000px){button:not(.leaflet-control-zoom-in):not(.leaflet-control-zoom-out):not(.close):not(.bell){min-height:64px!important;padding:14px 16px!important;font-size:16px!important;line-height:1.35!important}button.close,button.bell{min-width:48px!important;min-height:48px!important;padding:6px!important}}
 </style>
+
+
+  <!-- Bus company workflow: register own drivers and assign drivers without exposing vehicle assignment. -->
+<script>
+(()=>{
+ const role=document.getElementById('role'),ordersBody=document.getElementById('ordersBody'),ordersPanel=document.getElementById('ordersPanel');
+ if(!role||!ordersBody||!ordersPanel)return;
+ const isBus=()=>role.value==='バス会社'&&appRole==='バス会社';
+ const registration=document.createElement('section');registration.id='busDriverRegistration';registration.className='panel';registration.hidden=true;registration.style.cssText='margin:16px 0;border:2px solid #b9c9da;background:#f7f9fc';
+ registration.innerHTML='<div class="panel-head"><div><h2>自社の運転手を登録</h2><p>登録した運転手は、依頼の手配画面から選べます。登録後の変更・利用停止は運行管理者が行います。</p></div></div><div class="form-grid"><div class="field"><label for="busDriverName">運転手のお名前 *</label><input id="busDriverName" autocomplete="name" maxlength="100" placeholder="例：山田 太郎" required></div><div class="field"><label for="busDriverPhone">電話番号（任意）</label><input id="busDriverPhone" type="tel" autocomplete="tel" maxlength="40" placeholder="例：090-1234-5678"></div><div class="field full"><button type="button" class="primary" id="busSaveDriver">運転手を登録</button><p id="busDriverMessage" role="status" style="margin:0;color:#53625a"></p></div></div>';
+ ordersPanel.insertAdjacentElement('afterend',registration);
+ const saveButton=registration.querySelector('#busSaveDriver'),nameInput=registration.querySelector('#busDriverName'),phoneInput=registration.querySelector('#busDriverPhone'),message=registration.querySelector('#busDriverMessage');
+ function syncRegistration(){registration.hidden=!isBus()}
+ async function registerDriver(){
+  if(!isBus()){message.textContent='バス会社アカウントでログインしてください。';return}
+  const name=nameInput.value.trim();if(!name){nameInput.focus();message.textContent='運転手のお名前を入力してください。';return}
+  if(!appUser?.id){message.textContent='ログイン状態を確認できません。再読み込みしてください。';return}
+  saveButton.disabled=true;message.textContent='登録しています…';
+  try{
+   const {data:profile,error:profileError}=await supabaseClient.from('profiles').select('organization_id').eq('id',appUser.id).maybeSingle();
+   if(profileError)throw profileError;
+   if(!profile?.organization_id)throw new Error('アカウントに所属会社が設定されていません。運行管理者に確認してください。');
+   const {error}=await supabaseClient.rpc('wedrive_save_driver',{p_organization_id:profile.organization_id,p_name:name,p_phone:phoneInput.value.trim()||null,p_driver_id:null});
+   if(error)throw error;
+   nameInput.value='';phoneInput.value='';message.textContent='登録しました。依頼の「運転手を手配」から選べます。';
+   if(typeof toast==='function')toast('運転手を登録しました');
+  }catch(error){console.error(error);message.textContent=error?.message||'登録できませんでした。通信をご確認ください。'}
+  finally{saveButton.disabled=false}
+ }
+ saveButton.addEventListener('click',registerDriver);
+ function refreshOrders(){
+  syncRegistration();if(!isBus())return;
+  ordersBody.querySelectorAll('[data-assign]').forEach(button=>{if(button.textContent.trim()!=='運転手を手配・変更')button.textContent='運転手を手配・変更'});
+  ordersBody.querySelectorAll('tr').forEach(row=>{const pill=row.cells[4]?.querySelector('.pill');if(pill&&pill.textContent.trim()==='車両・乗務員割当')pill.textContent='運転手手配済み'});
+ }
+ const previousRender=window.render;
+ if(typeof previousRender==='function'&&!previousRender.__busDriverWorkflow){const wrapped=function(...args){const result=previousRender.apply(this,args);refreshOrders();return result};wrapped.__busDriverWorkflow=true;window.render=wrapped}
+ new MutationObserver(refreshOrders).observe(ordersBody,{childList:true,subtree:true});
+ role.addEventListener('change',refreshOrders);
+ if(typeof supabaseClient!=='undefined')supabaseClient.auth.onAuthStateChange(()=>setTimeout(refreshOrders,0));
+ document.addEventListener('click',async event=>{
+  const button=event.target instanceof Element?event.target.closest('#ordersBody [data-assign]'):null;if(!button||!isBus())return;
+  event.preventDefault();event.stopImmediatePropagation();
+  const modal=document.getElementById('assignmentModal'),form=document.getElementById('assignmentForm'),vehicle=document.getElementById('assignmentVehicle'),driver=document.getElementById('assignmentDriver');if(!modal||!form||!vehicle||!driver)return;
+  const requestId=button.dataset.assign;document.getElementById('assignmentOrderId').value=requestId;
+  const vehicleField=vehicle.closest('.field');if(vehicleField)vehicleField.hidden=true;vehicle.required=false;vehicle.value='';driver.required=true;
+  modal.querySelector('.modal-head h2').textContent='運転手を手配';form.querySelector('button[type="submit"]').textContent='運転手の手配を確定';
+  if(typeof wedriveLoadFleet==='function')await wedriveLoadFleet();
+  const currentOrder=orders.find(item=>String(item.id)===String(requestId)),currentDriverId=currentOrder?.assignment?.driver_id,currentDriver=(window.wedriveFleetDrivers||[]).find(item=>String(item.id)===String(currentDriverId));
+  if(currentDriver&&!Array.from(driver.options).some(option=>option.value===currentDriver.id)){const option=document.createElement('option');option.value=currentDriver.id;option.textContent=currentDriver.name;driver.append(option)}
+  modal.classList.add('show');if(driver.options.length<=1)message.textContent='先にこの画面下の「自社の運転手を登録」から登録してください。';
+ },true);
+ document.addEventListener('submit',async event=>{
+  if(event.target?.id!=='assignmentForm'||!isBus())return;
+  event.preventDefault();event.stopImmediatePropagation();
+  const requestId=document.getElementById('assignmentOrderId').value,driverId=document.getElementById('assignmentDriver').value,submit=event.target.querySelector('button[type="submit"]');
+  if(!requestId||!driverId){if(typeof toast==='function')toast('運転手を選択してください');return}
+  submit.disabled=true;const {error}=await supabaseClient.rpc('wedrive_assign_driver',{p_request_id:requestId,p_driver_id:driverId});submit.disabled=false;
+  if(error){console.error(error);if(typeof toast==='function')toast(error.message||'運転手を手配できませんでした');return}
+  document.getElementById('assignmentModal').classList.remove('show');await wedriveLoadShared(true);
+  if(typeof toast==='function')toast('運転手を手配しました。依頼一覧をご確認ください');
+ },true);
+ refreshOrders();
+})();
+</script>
