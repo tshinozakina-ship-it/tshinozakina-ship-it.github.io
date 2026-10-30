@@ -1536,3 +1536,50 @@ button.close,button.bell{min-width:48px!important;min-height:48px!important;disp
 </script>
 
 <script>render();</script>
+
+<!-- Require a bus-company contact name before the existing acceptance RPC can run. -->
+<script id="wedrive-required-acceptance-contact">
+(()=>{
+ const modal=document.getElementById('requestDetailsModal');
+ if(!modal)return;
+ const form=modal.querySelector('[data-accept-form]');
+ const checkbox=modal.querySelector('[data-accept-check]');
+ const submit=modal.querySelector('[data-accept-submit]');
+ if(!form||!checkbox||!submit)return;
+ const field=document.createElement('div');
+ field.className='field full';
+ field.id='acceptanceContactField';
+ field.style.cssText='margin-top:16px;padding:14px;border:1px solid #cbd8ce;border-radius:10px;background:#f7faf8';
+ field.innerHTML='<label for="acceptanceContactName">バス会社の担当者名 *</label><input id="acceptanceContactName" name="acceptanceContactName" type="text" maxlength="100" autocomplete="name" required placeholder="受注を担当する方のお名前"><small>担当者名を入力しないと受注できません。</small>';
+ const input=field.querySelector('input');
+ const label=modal.querySelector('[data-accept-label]');
+ if(label)label.before(field);else form.prepend(field);
+ const style=document.createElement('style');
+ style.textContent='#requestDetailsModal #acceptanceContactField{display:block!important}#requestDetailsModal #acceptanceContactName{width:100%;min-height:52px;padding:12px;border:1px solid #cbd7cf;border-radius:8px;font-size:16px}#requestDetailsModal #acceptanceContactName:focus{outline:3px solid #d28b24;outline-offset:2px}';
+ document.head.appendChild(style);
+ const reset=()=>{input.value='';input.setCustomValidity('')};
+ const observer=new MutationObserver(()=>{if(modal.classList.contains('show')){reset();input.focus({preventScroll:true})}});
+ observer.observe(modal,{attributes:true,attributeFilter:['class']});
+ form.addEventListener('submit',event=>{
+  if(!modal.classList.contains('show'))return;
+  const name=input.value.trim();
+  if(!name){event.preventDefault();event.stopImmediatePropagation();input.setCustomValidity('受注担当者名を入力してください。');input.reportValidity();input.focus();submit.disabled=true;return}
+  input.setCustomValidity('');
+ },true);
+ input.addEventListener('input',()=>{input.setCustomValidity('');submit.disabled=!checkbox.checked||!input.value.trim()});
+ checkbox.addEventListener('change',()=>{submit.disabled=!checkbox.checked||!input.value.trim()});
+})();
+</script>
+
+<script id="wedrive-acceptance-contact-role-visibility">
+(()=>{
+ const modal=document.getElementById('requestDetailsModal'),field=document.getElementById('acceptanceContactField'),label=modal?.querySelector('[data-accept-label]'),input=document.getElementById('acceptanceContactName');
+ if(!modal||!field||!label||!input)return;
+ const sync=()=>{const visible=modal.classList.contains('show')&&label.style.display!=='none';field.hidden=!visible;if(!visible&&document.activeElement===input)input.blur()};
+ new MutationObserver(sync).observe(modal,{attributes:true,attributeFilter:['class']});
+ new MutationObserver(sync).observe(label,{attributes:true,attributeFilter:['style']});
+ sync();
+})();
+</script>
+
+<style id="wedrive-acceptance-contact-hidden">#requestDetailsModal #acceptanceContactField[hidden]{display:none!important}</style>
