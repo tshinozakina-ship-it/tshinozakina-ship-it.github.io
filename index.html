@@ -1599,3 +1599,5 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
 </style>
 
 <style id="wedrive-primary-button-width-fix">#busDriverRegistration .field button.primary,#busDriverRegistration .field button[type="submit"]{width:100%!important;max-width:100%!important}</style>
+
+<style id="wedrive-button-grid-specificity-fix">body button.primary:not(.bell):not(.close):not(.nav):not(.leaflet-control-zoom-in):not(.leaflet-control-zoom-out){width:100%!important;max-width:100%!important}body .filters>button:not(.bell):not(.close):not(.nav):not(.leaflet-control-zoom-in):not(.leaflet-control-zoom-out),body .modal-actions>button:not(.bell):not(.close):not(.nav):not(.leaflet-control-zoom-in):not(.leaflet-control-zoom-out){width:100%!important;max-width:100%!important}#ordersBody td:nth-child(6) .order-document-actions,#ordersBody td:nth-child(6) .shuttle-confirm-actions{display:contents!important}#ordersBody td:nth-child(6) .wedrive-phone-list{grid-column:1/-1!important}</style>
