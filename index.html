@@ -1583,3 +1583,17 @@ button.close,button.bell{min-width:48px!important;min-height:48px!important;disp
 </script>
 
 <style id="wedrive-acceptance-contact-hidden">#requestDetailsModal #acceptanceContactField[hidden]{display:none!important}</style>
+
+<style id="wedrive-uniform-button-size">
+/* Main actions remain full width; secondary actions form compact two-column groups. */
+body button:not(.bell):not(.close):not(.nav):not(.leaflet-control-zoom-in):not(.leaflet-control-zoom-out){width:50%!important;max-width:50%!important;height:60px!important;min-height:60px!important;max-height:60px!important;box-sizing:border-box!important;white-space:normal!important;overflow-wrap:anywhere!important;line-height:1.25!important;padding:8px 12px!important;display:inline-flex;align-items:center;justify-content:center;text-align:center}
+button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInventoryPage,#loginBtn,#requestForm button[type="submit"],.welcome-admin-actions>#newRequest,.welcome-admin-actions>#newShuttleOrder,.welcome-admin-actions>#openAdminResources{width:100%!important;max-width:100%!important}
+.welcome-admin-actions{justify-items:stretch!important}
+.filters,.modal-actions,#ordersBody td:nth-child(6){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+.filters>button,.modal-actions>button,#ordersBody td:nth-child(6)>button,#ordersBody td:nth-child(6) .order-document-actions>button,#ordersBody td:nth-child(6) .shuttle-confirm-actions>button{width:100%!important;max-width:100%!important;margin:0!important}
+.modal-actions>button.primary{grid-column:1/-1!important}
+#ordersBody td:nth-child(6) .order-document-actions,#ordersBody td:nth-child(6) .shuttle-confirm-actions{display:contents!important}
+#ordersBody td:nth-child(6) .wedrive-phone-list,#ordersBody td:nth-child(6)>div:not(.order-document-actions):not(.shuttle-confirm-actions){grid-column:1/-1!important}
+#busDriverRegistration .field button{width:50%!important;max-width:50%!important}
+@media(max-width:700px){body button:not(.bell):not(.close):not(.nav):not(.leaflet-control-zoom-in):not(.leaflet-control-zoom-out){height:60px!important;min-height:60px!important;max-height:60px!important;font-size:15px!important}.welcome-admin-actions{justify-items:stretch!important}}
+</style>
