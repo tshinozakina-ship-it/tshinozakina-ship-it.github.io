@@ -1605,3 +1605,22 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
 <style id="wedrive-uniform-button-height-final">body button:not(.bell):not(.close):not(.nav):not(.leaflet-control-zoom-in):not(.leaflet-control-zoom-out){height:60px!important;min-height:60px!important;max-height:60px!important}#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInventoryPage,#loginBtn,#requestForm button[type="submit"],#busSaveDriver{height:60px!important;min-height:60px!important;max-height:60px!important}</style>
 
 <style id="wedrive-button-height-specific-fix">.welcome-admin-actions>#newRequest,.welcome-admin-actions>#newShuttleOrder,.welcome-admin-actions>#openAdminResources,#ordersBody td:nth-child(6)>button,#ordersBody td:nth-child(6) .order-document-actions>button,#ordersBody td:nth-child(6) .shuttle-confirm-actions>button{height:60px!important;min-height:60px!important;max-height:60px!important}</style>
+
+
+<script id="wedrive-admin-shuttle-visibility-repair">
+(()=>{
+ const sync=()=>{
+  const button=document.getElementById("newShuttleOrder"),role=document.getElementById("role");
+  if(!button||!role)return;
+  const allowed=typeof appRole!=="undefined"&&appRole==="運行管理スタッフ"&&role.value==="運行管理スタッフ";
+  button.hidden=!allowed;
+  button.classList.toggle("role-hidden",!allowed);
+  if(allowed)button.style.setProperty("display","block","important");
+  else button.style.removeProperty("display");
+ };
+ sync();
+ document.getElementById("role")?.addEventListener("change",sync);
+ new MutationObserver(sync).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["hidden","class"]});
+ setInterval(sync,1000);
+})();
+</script>
