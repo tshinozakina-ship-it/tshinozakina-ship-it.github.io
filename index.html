@@ -107,7 +107,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 <div class="nav-label" style="margin-top:28px">MANAGEMENT</div><button class="nav" data-page="partners"><span class="ico">⌘</span>提携バス会社</button><button class="nav" data-page="customers"><span class="ico">♙</span>お客様・式場</button><button class="nav" data-page="reports"><span class="ico">▥</span>レポート</button>
 <div class="side-bottom"><div class="nav-label">SUPPORT</div><button class="nav"><span class="ico">ⓘ</span>ヘルプ・お問い合わせ</button><div class="profile"><div class="avatar">佐</div><div><b>仲原 於臣</b><small id="profileRole">運行管理スタッフ</small></div></div></div></aside>
 <main class="main"><header class="top"><div class="crumb">WEDRIVE <span style="margin:0 9px;color:#c2c9c4">/</span><b id="crumb">ダッシュボード</b></div><div class="top-right"><span class="today" id="today"></span><button type="button" class="bell" aria-label="通知一覧を開く" aria-haspopup="dialog" aria-expanded="false">🔔</button><select class="role" id="role" disabled style="visibility:hidden"><option>運行管理スタッフ</option><option>式場プランナー</option><option>バス会社</option><option>運転者</option></select></div></header>
-<div class="content"><section class="welcome"><div><div class="eyebrow">WEDRIVE · 運行管理</div><h1 id="greeting">おはようございます、仲原さん</h1><p id="welcomeText">本日の運行状況をお知らせします。安全で心地よい一日を。</p></div><button class="primary" id="newRequest">＋　送迎を依頼する</button></section>
+<div class="content"><section class="welcome"><div><div class="eyebrow">WEDRIVE · 運行管理</div><h1 id="greeting">おはようございます、仲原さん</h1><p id="welcomeText">本日の運行状況をお知らせします。安全で心地よい一日を。</p></div><button class="primary" id="newRequest">＋　送迎を依頼する</button><button class="primary" id="newShuttleOrder" type="button" hidden>＋ シャトルバスを依頼</button></section>
 <div class="role-banner" id="roleNotice" role="status"></div>
 <section class="gps-panel" id="gpsPanel"><div class="gps-head"><div><h2>運転者の現在地</h2><p id="gpsStatus">運転者が位置情報を共有すると、ここに表示されます。</p></div><button type="button" class="text-btn" id="openGpsMap">地図を大きく表示 ↗</button></div><div class="gps-driver" id="gpsDriverControls"><label class="gps-share-toggle" for="gpsShareToggle"><input id="gpsShareToggle" type="checkbox" disabled> 位置情報を共有する</label><label for="gpsDriverName">地図に表示する名前</label><input id="gpsDriverName" maxlength="24" placeholder="運転者名または車両名"><small id="gpsShareHelp">チェックを入れるとこのスマートフォンの現在地を共有します。位置情報を求められたら「許可」を選んでください。共有中はWEDRIVEを開いたままにし、業務終了後はチェックを外してください。</small><small>初回は、WEDRIVEにメールアドレスで登録した後、管理者に「運転者」の役割を設定してもらってください。ホーム画面への追加：iPhoneはSafariの共有ボタンから「ホーム画面に追加」、AndroidはChromeのメニューから「アプリをインストール」または「ホーム画面に追加」を選びます。</small></div><div class="gps-map" id="gpsMap" role="button" tabindex="0" aria-label="地図を拡大"></div><div class="gps-attribution">地図データ © OpenStreetMap contributors</div></section>
 <section class="metrics" id="adminMetrics"><div class="metric"><div class="metric-top">本日の運行 <span class="metric-icon">▦</span></div><strong id="mTrips">0<span>便</span></strong><small>登録された依頼</small></div><div class="metric"><div class="metric-top">手配済み <span class="metric-icon">✓</span></div><strong id="mReady">0<span>便</span></strong><small>車両・乗務員確定</small></div><div class="metric"><div class="metric-top">確認待ち <span class="metric-icon" style="background:#faf2e5;color:#a67a35">◷</span></div><strong id="mPending">3<span>件</span></strong><small>バス会社からの回答待ち</small></div><div class="metric"><div class="metric-top">稼働車両 <span class="metric-icon" style="background:#edf2f7;color:#64809a">▱</span></div><strong id="mVehicles">0<span>台</span></strong><small>登録された車両</small></div></section>
@@ -651,7 +651,8 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
   button.type = 'button'; button.id = 'openAdminResources'; button.className = 'secondary';
   button.textContent = '⚙ 車両・乗務員の管理'; button.hidden = true;
   const actionGroup = document.createElement('div'); actionGroup.className = 'welcome-admin-actions';
-  if (oldRequest) { oldRequest.after(actionGroup); actionGroup.append(oldRequest, button); }
+  const shuttleButton = document.getElementById('newShuttleOrder');
+  if (oldRequest) { oldRequest.after(actionGroup); actionGroup.append(oldRequest); if (shuttleButton) actionGroup.append(shuttleButton); actionGroup.append(button); }
 
   const back = document.createElement('button');
   back.type = 'button'; back.id = 'closeAdminResources'; back.className = 'secondary';
@@ -1072,7 +1073,7 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  const setup=()=>{
   const launch=document.getElementById('newRequest'),roleSelect=document.getElementById('role');
   if(!launch||!roleSelect)return false;
-  const isAdmin=()=>typeof appRole!=='undefined'&&appRole==='運行管理スタッフ'&&roleSelect.value==='運行管理スタッフ';
+  const isAdmin=()=>!!appUser&&!roleSelect.disabled&&roleSelect.value==='運行管理スタッフ';
   let button=document.getElementById('newShuttleOrder');
   if(!button){button=document.createElement('button');button.type='button';button.id='newShuttleOrder';button.className='primary';button.textContent='＋ シャトルバスを依頼';button.style.cssText='display:block;width:100%;min-height:58px;margin-top:10px;background:#007FA8;color:#FFFFFF;font-size:17px;font-weight:700';launch.insertAdjacentElement('afterend',button);}
   let modal=document.getElementById('shuttleOrderModal');
@@ -1612,7 +1613,7 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
  const sync=()=>{
   const button=document.getElementById("newShuttleOrder"),role=document.getElementById("role");
   if(!button||!role)return;
-  const allowed=typeof appRole!=="undefined"&&appRole==="運行管理スタッフ"&&role.value==="運行管理スタッフ";
+  const allowed=!!appUser&&!role.disabled&&role.value==="運行管理スタッフ";
   button.hidden=!allowed;
   button.classList.toggle("role-hidden",!allowed);
   if(allowed)button.style.setProperty("display","block","important");
@@ -1635,14 +1636,14 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
   if(!button){
    button=document.createElement("button");button.type="button";button.id="newShuttleOrder";button.className="primary";button.textContent="＋ シャトルバスを依頼";button.style.cssText="width:100%;min-height:60px;margin:10px 0 0;background:#007fa8;color:#fff;font-weight:700";launch.insertAdjacentElement("afterend",button);
    button.addEventListener("click",()=>{
-    const allowed=typeof appRole!=="undefined"&&appRole==="運行管理スタッフ"&&role.value==="運行管理スタッフ";
+    const allowed=!!appUser&&!role.disabled&&role.value==="運行管理スタッフ";
     if(!allowed){toast("運行管理スタッフのみ利用できます");return}
     const modal=document.getElementById("shuttleOrderModal"),form=document.getElementById("shuttleOrderForm");
     if(!modal){toast("画面を再読み込みしてもう一度お試しください");return}
     form?.reset();const date=document.getElementById("shuttleDate"),count=document.getElementById("shuttleBusCount");if(date)date.value="";if(count)count.value="1";modal.classList.add("show");
    });
   }
-  const allowed=typeof appRole!=="undefined"&&appRole==="運行管理スタッフ"&&role.value==="運行管理スタッフ";
+  const allowed=!!appUser&&!role.disabled&&role.value==="運行管理スタッフ";
   button.hidden=!allowed;button.classList.toggle("role-hidden",!allowed);
   if(allowed)button.style.setProperty("display","block","important");else button.style.removeProperty("display");
  };
@@ -1652,6 +1653,4 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
 })();
 </script>
 
-<script id="wedrive-admin-shuttle-account-role-bridge">
-(()=>{const role=document.getElementById("role");if(!role)return;const isAdmin=()=>role.value==="運行管理スタッフ"&&String(appUser&&appUser.email||"").trim().toLowerCase()==="t.shinozaki.na@gmail.com";const sync=()=>{const allowed=isAdmin();if(allowed&&typeof appRole!=="undefined")appRole="運行管理スタッフ";const button=document.getElementById("newShuttleOrder");if(button){button.hidden=!allowed;button.classList.toggle("role-hidden",!allowed);if(allowed)button.style.setProperty("display","block","important");else button.style.removeProperty("display")}};sync();role.addEventListener("change",sync);setInterval(sync,800)})();
-</script>
+
