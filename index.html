@@ -1651,3 +1651,7 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
  setInterval(sync,1000);
 })();
 </script>
+
+<script id="wedrive-admin-shuttle-account-role-bridge">
+(()=>{const role=document.getElementById("role");if(!role)return;const isAdmin=()=>role.value==="運行管理スタッフ"&&String(appUser&&appUser.email||"").trim().toLowerCase()==="t.shinozaki.na@gmail.com";const sync=()=>{const allowed=isAdmin();if(allowed&&typeof appRole!=="undefined")appRole="運行管理スタッフ";const button=document.getElementById("newShuttleOrder");if(button){button.hidden=!allowed;button.classList.toggle("role-hidden",!allowed);if(allowed)button.style.setProperty("display","block","important");else button.style.removeProperty("display")}};sync();role.addEventListener("change",sync);setInterval(sync,800)})();
+</script>
