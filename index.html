@@ -1624,3 +1624,30 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
  setInterval(sync,1000);
 })();
 </script>
+
+
+<script id="wedrive-admin-shuttle-button-create-fix">
+(()=>{
+ const sync=()=>{
+  const role=document.getElementById("role"),launch=document.getElementById("newRequest");
+  if(!role||!launch)return;
+  let button=document.getElementById("newShuttleOrder");
+  if(!button){
+   button=document.createElement("button");button.type="button";button.id="newShuttleOrder";button.className="primary";button.textContent="＋ シャトルバスを依頼";button.style.cssText="width:100%;min-height:60px;margin:10px 0 0;background:#007fa8;color:#fff;font-weight:700";launch.insertAdjacentElement("afterend",button);
+   button.addEventListener("click",()=>{
+    const allowed=typeof appRole!=="undefined"&&appRole==="運行管理スタッフ"&&role.value==="運行管理スタッフ";
+    if(!allowed){toast("運行管理スタッフのみ利用できます");return}
+    const modal=document.getElementById("shuttleOrderModal"),form=document.getElementById("shuttleOrderForm");
+    if(!modal){toast("画面を再読み込みしてもう一度お試しください");return}
+    form?.reset();const date=document.getElementById("shuttleDate"),count=document.getElementById("shuttleBusCount");if(date)date.value="";if(count)count.value="1";modal.classList.add("show");
+   });
+  }
+  const allowed=typeof appRole!=="undefined"&&appRole==="運行管理スタッフ"&&role.value==="運行管理スタッフ";
+  button.hidden=!allowed;button.classList.toggle("role-hidden",!allowed);
+  if(allowed)button.style.setProperty("display","block","important");else button.style.removeProperty("display");
+ };
+ sync();document.getElementById("role")?.addEventListener("change",sync);
+ new MutationObserver(sync).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["hidden","class"]});
+ setInterval(sync,1000);
+})();
+</script>
