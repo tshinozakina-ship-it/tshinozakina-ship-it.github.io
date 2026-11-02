@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#315e4c">
+<title>WEDRIVE ログイン</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:#f4f7f4;color:#24352f;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif}
+.card{width:min(440px,100%);padding:32px;background:#fff;border:1px solid #d9e2dc;border-radius:18px;box-shadow:0 12px 36px #20352b12}
+h1{margin:0 0 8px;font-size:28px}p{line-height:1.65}label{display:block;margin:18px 0 7px;font-weight:650}
+input{display:block;width:100%;height:54px;padding:12px 14px;border:1px solid #aebeb3;border-radius:9px;background:#fff;color:#20352b;font-size:18px;pointer-events:auto;user-select:text}
+input:focus{outline:3px solid #8db49b;border-color:#315e4c}
+button{display:block;width:100%;min-height:54px;margin-top:14px;border:0;border-radius:9px;background:#315e4c;color:#fff;font-size:18px;font-weight:700;cursor:pointer}
+button.secondary{background:#e8f1eb;color:#244e3a;border:1px solid #cbdccf}
+button:disabled{opacity:.65;cursor:wait}
+#message{min-height:28px;margin:16px 0 0;font-size:15px;overflow-wrap:anywhere}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<main class="card">
+<h1>WEDRIVE</h1>
+<p>メールアドレスとパスワードでログインしてください。</p>
+<form id="loginForm">
+<label for="email">メールアドレス</label>
+<input id="email" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" required autofocus>
+<label for="password">パスワード</label>
+<input id="password" name="password" type="password" autocomplete="current-password" required>
+<button id="loginButton" type="submit">ログイン</button>
+</form>
+<button id="signupButton" class="secondary" type="button">新規登録</button>
+<p id="message" role="status" aria-live="polite"></p>
+</main>
+<script>
+const supabaseClient=window.supabase.createClient('https://stjjaxsscdyaxvdngtlh.supabase.co','sb_publishable_XJXmcJFdkStUjqRhqsoIdw_pYeXXW56');
+const form=document.getElementById('loginForm'),message=document.getElementById('message'),loginButton=document.getElementById('loginButton'),signupButton=document.getElementById('signupButton');
+form.addEventListener('submit',async event=>{event.preventDefault();if(!form.reportValidity())return;loginButton.disabled=true;signupButton.disabled=true;message.textContent='ログインしています…';try{const {error}=await supabaseClient.auth.signInWithPassword({email:form.email.value.trim(),password:form.password.value});if(error){message.textContent='ログインエラー：'+error.message;return}message.textContent='ログインしました。画面を開いています…';location.replace('./?rev=login-20261102')}catch(error){message.textContent='ログインできませんでした。通信を確認してください。'}finally{loginButton.disabled=false;signupButton.disabled=false}});
+signupButton.addEventListener('click',async()=>{if(!form.email.value.trim()||!form.password.value){message.textContent='新規登録するメールアドレスとパスワードを入力してください。';return}if(form.password.value.length<6){message.textContent='パスワードは6文字以上にしてください。';return}signupButton.disabled=true;loginButton.disabled=true;message.textContent='登録しています…';try{const {error}=await supabaseClient.auth.signUp({email:form.email.value.trim(),password:form.password.value});message.textContent=error?'登録エラー：'+error.message:'新規登録を受け付けました。確認メールをご確認ください。'}catch(error){message.textContent='登録できませんでした。通信を確認してください。'}finally{signupButton.disabled=false;loginButton.disabled=false}});
+</script>
+</body>
+</html>
