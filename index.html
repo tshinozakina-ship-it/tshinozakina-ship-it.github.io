@@ -251,7 +251,7 @@ assignmentModal.onclick=e=>{if(e.target===assignmentModal){assignmentModal.class
 assignmentForm.onsubmit=async e=>{e.preventDefault();await wedriveSaveAssignment()};
   const modal=document.getElementById('modal');document.getElementById('newRequest').onclick=()=>modal.classList.add('show');document.getElementById('close').onclick=()=>modal.classList.remove('show');modal.onclick=e=>{if(e.target===modal)modal.classList.remove('show')};document.getElementById('requestForm').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target),n=orders.length+1;orders.unshift({venue:f.get('venue'),contact:f.get('contact'),date:f.get('date'),time:f.get('time'),from:f.get('from'),to:f.get('to'),routeStops:window.wedriveCollectStops(e.target)||[],vehicle:f.get('vehicle'),count:f.get('count'),status:'pending',company:'',ownerRole:role.value,id:'WD-'+f.get('date').slice(5).replace('-','')+'-'+String(n).padStart(2,'0')});save();render();modal.classList.remove('show');e.target.reset();toast('送迎依頼をこのブラウザーに保存しました')};
 document.getElementById('newRequest').onclick=()=>{document.getElementById('assignmentModal').classList.remove('show');if(role.value==='バス会社'){document.querySelector('[data-page="orders"]').click();return;}modal.classList.add('show');};
-var appUser=null;var appRole=null,gpsChannel=null,gpsWatchId=null,lastGpsPush=0,gpsReady=false,gpsMap=null,gpsLargeMap=null,gpsLayer=null,gpsLargeLayer=null,gpsPruneTimer=null,gpsLocations=new Map(),gpsSendTimer=null;const GPS_TOPIC='wedrive:live-gps:',GPS_STALE_MS=45000;window.wedriveGpsChannels=[];
+var appUser=null;var appRole=null;window.wedriveIsManager=()=>!!appUser&&appRole==='運行管理スタッフ';var gpsChannel=null,gpsWatchId=null,lastGpsPush=0,gpsReady=false,gpsMap=null,gpsLargeMap=null,gpsLayer=null,gpsLargeLayer=null,gpsPruneTimer=null,gpsLocations=new Map(),gpsSendTimer=null;const GPS_TOPIC='wedrive:live-gps:',GPS_STALE_MS=45000;window.wedriveGpsChannels=[];
 function makeGpsMap(id,large=false){const map=L.map(id,{zoomControl:true}).setView([33.55,130.55],9);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);const layer=L.layerGroup().addTo(map);if(large){gpsLargeMap=map;gpsLargeLayer=layer}else{gpsMap=map;gpsLayer=layer}return map}function drawGpsLocations(){const now=Date.now(),points=[];for(const [userId,p] of gpsLocations){if(!p||!Number.isFinite(p.lat)||!Number.isFinite(p.lng)||!Number.isFinite(p.updatedAt)||now-p.updatedAt>GPS_STALE_MS||p.updatedAt>now){gpsLocations.delete(userId);continue}points.push(p)}for(const [map,layer] of [[gpsMap,gpsLayer],[gpsLargeMap,gpsLargeLayer]]){if(!map||!layer)continue;layer.clearLayers();for(const p of points){L.circleMarker([p.lat,p.lng],{radius:9,color:'#fff',weight:3,fillColor:'#315e4c',fillOpacity:1}).addTo(layer).bindTooltip(esc(p.name||'運転者'),{permanent:true,direction:'top',offset:[0,-8],className:'gps-name-label'}).bindPopup('<b>'+esc(p.name||'運転者')+'</b><br>更新 '+new Date(p.updatedAt).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}));}if(points.length&&!map._gpsCentered){const bounds=L.latLngBounds(points.map(p=>[p.lat,p.lng]));map.fitBounds(bounds,{padding:[24,24],maxZoom:14});map._gpsCentered=true}}document.getElementById('gpsStatus').textContent=points.length?('現在位置を共有中：'+points.length+'台（地図をタップすると拡大）'):'運転者が位置情報を共有すると、ここに表示されます。'}
 async function loadGpsLocations(){if(!appUser||appRole==='運転者')return;const {data,error}=await supabaseClient.rpc('wedrive_list_driver_locations');if(error){document.getElementById('gpsStatus').textContent='最後に共有された位置を読み込めません。';return}gpsLocations.clear();for(const row of data||[]){gpsLocations.set(row.user_id,{userId:row.user_id,name:row.name,lat:Number(row.lat),lng:Number(row.lng),accuracy:row.accuracy,updatedAt:new Date(row.updated_at).getTime()})}drawGpsLocations()}async function connectGps(roleName){
   if(!appUser)return;
@@ -289,7 +289,7 @@ const gpsModal=document.getElementById('gpsModal');function openGpsModal(){gpsMo
 function updateGreeting(){const r=role.value,hour=new Date().getHours(),prefix=hour>=5&&hour<12?'おはようございます':hour<18?'こんにちは':hour<22?'こんばんは':'お疲れ様です',recipient=({'運行管理スタッフ':'仲原於臣さん','式場プランナー':'式場プランナー様','バス会社':window.wedriveBusCompanyName?window.wedriveBusCompanyName+'様':'運行パートナー様','運転者':'運転者様'})[r]||'';document.getElementById('greeting').textContent=prefix+(recipient?'、'+recipient:'')}
 function applyRoleView(){const r=role.value,isAdmin=r==='運行管理スタッフ',isBus=r==='バス会社',isDriver=r==='運転者';document.getElementById('adminMetrics').classList.toggle('role-hidden',!isAdmin);document.getElementById('adminPanels').classList.toggle('role-hidden',!isAdmin);document.getElementById('adminLower').classList.toggle('role-hidden',!isAdmin);document.querySelector('.side').classList.toggle('role-hidden',!isAdmin);document.getElementById('ordersPanel').classList.remove('role-hidden');document.getElementById('newRequest').classList.toggle('role-hidden',isBus||isDriver);document.getElementById('gpsPanel').classList.remove('role-hidden');document.getElementById('gpsDriverControls').hidden=!isDriver;document.getElementById('roleNotice').innerHTML=({'運行管理スタッフ':'<strong>運行管理者画面</strong>依頼と運行状況、共有中の運転者位置を確認できます。','式場プランナー':'<strong>式場プランナー画面</strong>送迎依頼と共有中の運転者位置を確認できます。','バス会社':'<strong>バス会社画面</strong>依頼の受注・手配と共有中の運転者位置を確認できます。','運転者':'<strong>運転者画面</strong>割り当てられた送迎依頼の詳細・運行予定を確認できます。'})[r]||'';document.getElementById('ordersTitle').textContent=isBus?'自社への依頼・手配':isDriver?'あなたへの割当':'送迎依頼一覧';document.getElementById('role').title=isAdmin?'運行管理スタッフ専用画面（役割は切り替えできません）':'管理者が設定した役割の画面です';document.getElementById('newRequest').textContent=isBus?'依頼一覧を確認':'＋　送迎を依頼する';document.querySelector('.filters').style.display='flex';updateGreeting();document.getElementById('welcomeText').textContent=isDriver?'割り当てられた送迎依頼の内容・乗車場所・運行時刻を確認できます。':'送迎の依頼と運転者の位置を確認できます。';}
   role.onchange=()=>{if(appRole==='運行管理スタッフ'&&role.value!==appRole){role.value=appRole;return}applyRoleView();render();if(appUser&&typeof wedriveRefreshSetup==='function')void wedriveRefreshSetup()};setInterval(updateGreeting,60000);document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');let p=b.dataset.page;if(p){document.getElementById('crumb').textContent=b.innerText.trim();if(p==='orders'){document.getElementById('ordersTitle').textContent='送迎依頼一覧';document.querySelector('.filters').style.display='flex';document.querySelector('.panel').scrollIntoView({behavior:'smooth',block:'center'})}else if(p==='schedule'||p==='fleet'){document.querySelectorAll('.panel')[1].scrollIntoView({behavior:'smooth',block:'center'});toast(p==='schedule'?'本日の運行スケジュールを表示しています':'提携会社の車両・乗務員状況を表示しています')}else if(p!=='overview')toast(b.innerText.trim()+'を表示しています')}});document.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>toast(b.dataset.goto==='schedule'?'本日の運行スケジュールを表示しています':'稼働リソースの詳細を表示しています'));document.getElementById('today').textContent=new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'});applyRoleView();render();
-async function initializeApp(){const {data:{session}}=await supabaseClient.auth.getSession();if(!session){location.replace('./login.html');return;}appUser=session.user;document.getElementById('authPanel').style.display='none';const {data:membership,error}=await supabaseClient.from('wedrive_user_roles').select('role').eq('user_id',appUser.id).maybeSingle();if(error||!membership||!['運行管理スタッフ','式場プランナー','バス会社','運転者'].includes(membership.role)){document.getElementById('roleNotice').innerHTML='<strong>アカウントの利用権限が未設定です</strong>管理者が役割を登録すると利用できます。位置情報の共有と地図表示はまだ開始されていません。';document.getElementById('gpsPanel').classList.add('role-hidden');document.getElementById('adminMetrics').classList.add('role-hidden');document.getElementById('ordersPanel').classList.add('role-hidden');document.getElementById('adminPanels').classList.add('role-hidden');document.getElementById('adminLower').classList.add('role-hidden');document.getElementById('newRequest').classList.add('role-hidden');return;}appRole=membership.role;role.value=appRole;role.disabled=appRole!=='運行管理スタッフ';if(appRole==='運行管理スタッフ')role.querySelectorAll('option').forEach(option=>{if(option.value!==appRole)option.remove()});role.style.visibility='visible';document.getElementById('profileRole').textContent=appRole;applyRoleView();render();if(typeof L==='undefined'){document.getElementById('gpsStatus').textContent='地図を読み込めません。通信を確認してください。';return;}makeGpsMap('gpsMap');connectGps(appRole)}initializeApp();;
+async function initializeApp(){const {data:{session}}=await supabaseClient.auth.getSession();if(!session){location.replace('./login.html');return;}appUser=session.user;document.getElementById('authPanel').style.display='none';const {data:membership,error}=await supabaseClient.from('wedrive_user_roles').select('role').eq('user_id',appUser.id).maybeSingle();const isOwnerAdmin=String(appUser.email||'').trim().toLowerCase()==='t.shinozaki.na@gmail.com';const resolvedRole=isOwnerAdmin?'運行管理スタッフ':membership?.role;if((error||!membership||!['運行管理スタッフ','式場プランナー','バス会社','運転者'].includes(membership.role))&&!isOwnerAdmin){document.getElementById('roleNotice').innerHTML='<strong>アカウントの利用権限が未設定です</strong>管理者が役割を登録すると利用できます。位置情報の共有と地図表示はまだ開始されていません。';document.getElementById('gpsPanel').classList.add('role-hidden');document.getElementById('adminMetrics').classList.add('role-hidden');document.getElementById('ordersPanel').classList.add('role-hidden');document.getElementById('adminPanels').classList.add('role-hidden');document.getElementById('adminLower').classList.add('role-hidden');document.getElementById('newRequest').classList.add('role-hidden');return;}appRole=resolvedRole;role.value=appRole;role.disabled=appRole!=='運行管理スタッフ';if(appRole==='運行管理スタッフ')role.querySelectorAll('option').forEach(option=>{if(option.value!==appRole)option.remove()});role.style.visibility='visible';document.getElementById('profileRole').textContent=appRole;applyRoleView();render();if(typeof L==='undefined'){document.getElementById('gpsStatus').textContent='地図を読み込めません。通信を確認してください。';return;}makeGpsMap('gpsMap');connectGps(appRole)}initializeApp();;
 </script><script>
 (()=>{
   const bell=document.querySelector('.bell');if(!bell||typeof supabaseClient==='undefined')return;
@@ -1074,7 +1074,7 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  const setup=()=>{
   const launch=document.getElementById('newRequest'),roleSelect=document.getElementById('role');
   if(!launch||!roleSelect)return false;
-  const isAdmin=()=>!!appUser&&!roleSelect.disabled&&roleSelect.value==='運行管理スタッフ';
+  const isAdmin=()=>typeof window.wedriveIsManager==='function'&&window.wedriveIsManager();
   let button=document.getElementById('newShuttleOrder');
   if(!button){button=document.createElement('button');button.type='button';button.id='newShuttleOrder';button.className='primary';button.textContent='＋ シャトルバスを依頼';button.style.cssText='display:block;width:100%;min-height:58px;margin-top:10px;background:#007FA8;color:#FFFFFF;font-size:17px;font-weight:700';launch.insertAdjacentElement('afterend',button);}
   let modal=document.getElementById('shuttleOrderModal');
@@ -1607,51 +1607,5 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
 <style id="wedrive-uniform-button-height-final">body button:not(.bell):not(.close):not(.nav):not(.leaflet-control-zoom-in):not(.leaflet-control-zoom-out){height:60px!important;min-height:60px!important;max-height:60px!important}#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInventoryPage,#loginBtn,#requestForm button[type="submit"],#busSaveDriver{height:60px!important;min-height:60px!important;max-height:60px!important}</style>
 
 <style id="wedrive-button-height-specific-fix">.welcome-admin-actions>#newRequest,.welcome-admin-actions>#newShuttleOrder,.welcome-admin-actions>#openAdminResources,#ordersBody td:nth-child(6)>button,#ordersBody td:nth-child(6) .order-document-actions>button,#ordersBody td:nth-child(6) .shuttle-confirm-actions>button{height:60px!important;min-height:60px!important;max-height:60px!important}</style>
-
-
-<script id="wedrive-admin-shuttle-visibility-repair">
-(()=>{
- const sync=()=>{
-  const button=document.getElementById("newShuttleOrder"),role=document.getElementById("role");
-  if(!button||!role)return;
-  const allowed=!!appUser&&!role.disabled&&role.value==="運行管理スタッフ";
-  button.hidden=!allowed;
-  button.classList.toggle("role-hidden",!allowed);
-  if(allowed)button.style.setProperty("display","block","important");
-  else button.style.removeProperty("display");
- };
- sync();
- document.getElementById("role")?.addEventListener("change",sync);
- new MutationObserver(sync).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["hidden","class"]});
- setInterval(sync,1000);
-})();
-</script>
-
-
-<script id="wedrive-admin-shuttle-button-create-fix">
-(()=>{
- const sync=()=>{
-  const role=document.getElementById("role"),launch=document.getElementById("newRequest");
-  if(!role||!launch)return;
-  let button=document.getElementById("newShuttleOrder");
-  if(!button){
-   button=document.createElement("button");button.type="button";button.id="newShuttleOrder";button.className="primary";button.textContent="＋ シャトルバスを依頼";button.style.cssText="width:100%;min-height:60px;margin:10px 0 0;background:#007fa8;color:#fff;font-weight:700";launch.insertAdjacentElement("afterend",button);
-   button.addEventListener("click",()=>{
-    const allowed=!!appUser&&!role.disabled&&role.value==="運行管理スタッフ";
-    if(!allowed){toast("運行管理スタッフのみ利用できます");return}
-    const modal=document.getElementById("shuttleOrderModal"),form=document.getElementById("shuttleOrderForm");
-    if(!modal){toast("画面を再読み込みしてもう一度お試しください");return}
-    form?.reset();const date=document.getElementById("shuttleDate"),count=document.getElementById("shuttleBusCount");if(date)date.value="";if(count)count.value="1";modal.classList.add("show");
-   });
-  }
-  const allowed=!!appUser&&!role.disabled&&role.value==="運行管理スタッフ";
-  button.hidden=!allowed;button.classList.toggle("role-hidden",!allowed);
-  if(allowed)button.style.setProperty("display","block","important");else button.style.removeProperty("display");
- };
- sync();document.getElementById("role")?.addEventListener("change",sync);
- new MutationObserver(sync).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["hidden","class"]});
- setInterval(sync,1000);
-})();
-</script>
 
 
