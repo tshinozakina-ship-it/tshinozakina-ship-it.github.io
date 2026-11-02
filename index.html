@@ -89,18 +89,18 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 @media(max-width:380px){.content{padding-left:10px;padding-right:10px}.role{max-width:165px}.metric{padding:12px}.metric-top{font-size:12px}}
 </style>
 </head>
+<body>
 <div id="authPanel" style="position:fixed;inset:0;background:#f7f8f5;z-index:9999;display:flex;align-items:center;justify-content:center;">
   <div style="background:white;padding:32px;border-radius:16px;width:360px;box-shadow:0 10px 40px rgba(0,0,0,.08);">
     <h2 style="margin-top:0;">WEDRIVE</h2>
     <p>ログインしてください</p>
-    <input id="authEmail" type="email" placeholder="メールアドレス" style="width:100%;padding:12px;margin:8px 0;box-sizing:border-box;">
-    <input id="authPassword" type="password" placeholder="パスワード" style="width:100%;padding:12px;margin:8px 0;box-sizing:border-box;">
+    <input id="authEmail" type="email" tabindex="0" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="メールアドレス" style="position:relative;z-index:10000;pointer-events:auto;user-select:text;width:100%;padding:12px;margin:8px 0;box-sizing:border-box;">
+    <input id="authPassword" type="password" tabindex="0" autocomplete="current-password" spellcheck="false" placeholder="パスワード" style="position:relative;z-index:10000;pointer-events:auto;user-select:text;width:100%;padding:12px;margin:8px 0;box-sizing:border-box;">
     <button id="loginBtn" style="width:100%;padding:12px;margin-top:8px;">ログイン</button>
     <button id="signupBtn" style="width:100%;padding:12px;margin-top:8px;">新規登録</button>
     <p id="authMessage" style="font-size:13px;"></p>
   </div>
 </div>
-  <body>
 <div class="app">
 <aside class="side"><div class="brand"><div class="logo">✳</div><div><b>WEDRIVE</b><small>WEDDING MOBILITY</small></div></div>
 <div class="nav-label">WORKSPACE</div><button class="nav active" data-page="overview"><span class="ico">◫</span>ダッシュボード</button><button class="nav" data-page="orders"><span class="ico">▤</span>送迎依頼 <span class="count" id="navCount">3</span></button><button class="nav" data-page="schedule"><span class="ico">▦</span>運行スケジュール</button><button class="nav" data-page="fleet"><span class="ico">▱</span>車両・乗務員</button>
