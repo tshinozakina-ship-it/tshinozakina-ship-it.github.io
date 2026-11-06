@@ -1621,42 +1621,44 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
  const body=document.getElementById('ordersBody');
  if(!body||typeof render!=='function')return;
  const style=document.createElement('style');
- style.textContent='.shuttle-batch-row>td{padding:0!important;border:0!important;background:transparent!important}.shuttle-batch-card{border:1px solid #9ab9a6;border-radius:14px;background:#f7fbf8;padding:16px;margin:10px 0}.shuttle-batch-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:4px 2px 12px;border-bottom:1px solid #d6e4da;color:#24352f}.shuttle-batch-head strong{font-size:18px}.shuttle-batch-head small{color:#69776e}.shuttle-batch-common{width:100%;color:#53625a}.shuttle-batch-units{display:grid;gap:10px;margin-top:12px}.shuttle-batch-unit{border:1px solid #d6e1d9;border-radius:10px;background:#fff;padding:12px}.shuttle-batch-unit-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}.shuttle-batch-unit-head strong{color:#245b43}.shuttle-batch-unit-actions{display:flex;flex-wrap:wrap;gap:8px}.shuttle-batch-unit-actions button{flex:1 1 170px;min-width:150px}.shuttle-batch-help{display:block;margin-top:10px;color:#69776e;font-size:13px}@media(max-width:720px){.shuttle-batch-card{padding:11px}.shuttle-batch-unit-actions{display:grid;grid-template-columns:1fr}.shuttle-batch-unit-actions button{width:100%;min-width:0}}';
+ style.textContent='.shuttle-batch-row>td{padding:0!important;border:0!important;background:transparent!important}.shuttle-batch-card{border:1px solid #9ab9a6;border-radius:14px;background:#f7fbf8;padding:16px;margin:10px 0}.shuttle-batch-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:4px 2px 12px;border-bottom:1px solid #d6e4da;color:#24352f}.shuttle-batch-head strong{font-size:18px}.shuttle-batch-common{width:100%;color:#53625a}.shuttle-batch-units{display:grid;gap:10px;margin-top:12px}.shuttle-batch-unit{border:1px solid #d6e1d9;border-radius:10px;background:#fff;padding:12px}.shuttle-batch-unit-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}.shuttle-batch-unit-head strong{color:#245b43}.shuttle-batch-unit-actions{display:flex;flex-wrap:wrap;gap:8px}.shuttle-batch-unit-actions button{flex:1 1 170px;min-width:150px}.shuttle-batch-help{display:block;margin-top:10px;color:#69776e;font-size:13px}@media(max-width:720px){.shuttle-batch-card{padding:11px}.shuttle-batch-unit-actions{display:grid;grid-template-columns:1fr}.shuttle-batch-unit-actions button{width:100%;min-width:0}}';
  document.head.appendChild(style);
- function batchInfo(order){
-  const notes=String(order.requirements||'');
-  if(!notes.includes('【シャトルバス】'))return null;
-  const totalMatch=notes.match(/発注台数：(\d+)台/),slotMatch=notes.match(/車両番号：(\d+)\/(\d+)台/);
-  if(!totalMatch||!slotMatch)return null;
-  const total=Number(totalMatch[1]),slot=Number(slotMatch[1]);
-  if(total<2||Number(slotMatch[2])!==total||slot<1||slot>total||!order.createdAt)return null;
-  const commonNotes=notes.replace(/^車両番号：\d+\/\d+台$/m,'').trim();
-  const key=JSON.stringify([order.createdAt,order.venue,order.date,order.time,order.arrivalTime,order.from,order.to,order.vehicle,order.company,total,commonNotes]);
-  return {key,total,slot};
+ function parseRow(row){
+  const tag=row.querySelector('.shuttle-order-tag');
+  if(!tag)return null;
+  const text=tag.textContent.trim();
+  const match=text.match(/シャトルバス\\s*[・·]\\s*(\\d+)台目／合計(\\d+)台\\s*[・·]\\s*(.*)/);
+  if(!match)return null;
+  const slot=Number(match[1]),total=Number(match[2]);
+  if(total<2||slot<1||slot>total)return null;
+  const venue=row.cells[0]?.querySelector('.venue')?.textContent.trim()||'';
+  const contactLine=row.cells[0]?.querySelector('.order-id')?.textContent.trim()||'';
+  const contact=contactLine.includes('·')?contactLine.split('·').slice(1).join('·').trim():contactLine;
+  const date=row.cells[1]?.textContent.trim()||'';
+  const route=row.cells[2]?.textContent.trim()||'';
+  const key=JSON.stringify([venue,contact,date,route,text.replace(/\\d+台目/,'#台目'),row.cells[5]?.querySelector('a')?.getAttribute('href')||'']);
+  return {key,slot,total,venue,date,route};
  }
  function groupRows(){
   const rows=Array.from(body.children).filter(row=>row.tagName==='TR'&&!row.dataset.shuttleBatchGrouped);
   const groups=new Map();
   for(const row of rows){
-   const order=orders.find(item=>String(item.id)===String(row.dataset.orderId));
-   if(!order)continue;
-   const info=batchInfo(order);if(!info)continue;
-   if(!groups.has(info.key))groups.set(info.key,{total:info.total,items:[]});
-   groups.get(info.key).items.push({row,order,slot:info.slot});
+   const info=parseRow(row);if(!info)continue;
+   if(!groups.has(info.key))groups.set(info.key,{info,items:[]});
+   groups.get(info.key).items.push({row,slot:info.slot});
   }
   for(const group of groups.values()){
    const uniqueSlots=new Set(group.items.map(item=>item.slot));
-   if(group.items.length!==group.total||uniqueSlots.size!==group.total)continue;
+   if(group.items.length!==group.info.total||uniqueSlots.size!==group.info.total)continue;
    group.items.sort((a,b)=>a.slot-b.slot);
-   const first=group.items[0].order;
    const groupedRow=document.createElement('tr');
-   groupedRow.className='shuttle-batch-row';groupedRow.dataset.shuttleBatchGrouped='true';groupedRow.dataset.orderId=String(first.id);
+   groupedRow.className='shuttle-batch-row';groupedRow.dataset.shuttleBatchGrouped='true';groupedRow.dataset.orderId=group.items[0].row.dataset.orderId||'';
    const cell=document.createElement('td');cell.colSpan=6;
    const card=document.createElement('section');card.className='shuttle-batch-card';
-   card.innerHTML='<div class="shuttle-batch-head"><strong>シャトルバス　'+group.total+'台分</strong><span class="shuttle-batch-common">'+esc(first.venue||'')+' ・ '+esc(first.date||'')+' ・ '+esc(first.time||'')+'～'+esc(first.arrivalTime||'')+'</span><span class="shuttle-batch-common">'+esc(first.from||'')+' → '+esc(first.to||'')+' ・ '+esc(first.vehicle||'')+'</span></div><div class="shuttle-batch-units"></div><small class="shuttle-batch-help">受注確認と乗務員の手配は、各台ごとに行います。</small>';
+   card.innerHTML='<div class="shuttle-batch-head"><strong>シャトルバス　'+group.info.total+'台分</strong><span class="shuttle-batch-common">'+esc(group.info.venue)+' ・ '+esc(group.info.date)+'</span><span class="shuttle-batch-common">'+esc(group.info.route)+'</span></div><div class="shuttle-batch-units"></div><small class="shuttle-batch-help">受注確認と乗務員の手配は、各台ごとに行います。</small>';
    const units=card.querySelector('.shuttle-batch-units');
    for(const item of group.items){
-    const unit=document.createElement('div');unit.className='shuttle-batch-unit';unit.dataset.unitOrderId=String(item.order.id);
+    const unit=document.createElement('div');unit.className='shuttle-batch-unit';
     const status=item.row.cells[4]?.innerHTML||'';
     const actions=item.row.cells[5]?.innerHTML||'';
     unit.innerHTML='<div class="shuttle-batch-unit-head"><strong>'+item.slot+'台目</strong><span>'+status+'</span></div><div class="shuttle-batch-unit-actions">'+actions+'</div>';
