@@ -1627,7 +1627,7 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
   const tag=row.querySelector('.shuttle-order-tag');
   if(!tag)return null;
   const text=tag.textContent.trim();
-  const match=text.match(/シャトルバス\\s*[・·]\\s*(\\d+)台目／合計(\\d+)台\\s*[・·]\\s*(.*)/);
+  const match=text.match(/シャトルバス\s*[・·]\s*(\d+)台目／合計(\d+)台\s*[・·]\s*(.*)/);
   if(!match)return null;
   const slot=Number(match[1]),total=Number(match[2]);
   if(total<2||slot<1||slot>total)return null;
@@ -1636,7 +1636,7 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
   const contact=contactLine.includes('·')?contactLine.split('·').slice(1).join('·').trim():contactLine;
   const date=row.cells[1]?.textContent.trim()||'';
   const route=row.cells[2]?.textContent.trim()||'';
-  const key=JSON.stringify([venue,contact,date,route,text.replace(/\\d+台目/,'#台目'),row.cells[5]?.querySelector('a')?.getAttribute('href')||'']);
+  const key=JSON.stringify([venue,contact,date,route,text.replace(/\d+台目/,'#台目'),row.cells[5]?.querySelector('a')?.getAttribute('href')||'']);
   return {key,slot,total,venue,date,route};
  }
  function groupRows(){
