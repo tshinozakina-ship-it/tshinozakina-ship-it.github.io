@@ -1662,6 +1662,7 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
     const status=item.row.cells[4]?.innerHTML||'';
     const actions=item.row.cells[5]?.innerHTML||'';
     unit.innerHTML='<div class="shuttle-batch-unit-head"><strong>'+item.slot+'台目</strong><span>'+status+'</span></div><div class="shuttle-batch-unit-actions">'+actions+'</div>';
+    if(!unit.querySelector('[data-chat]')){const chat=document.createElement('button');chat.type='button';chat.className='action';chat.dataset.chat=String(item.row.dataset.orderId||'');chat.textContent='チャット';unit.querySelector('.shuttle-batch-unit-actions')?.appendChild(chat)}
     units.appendChild(unit);
    }
    cell.appendChild(card);groupedRow.appendChild(cell);
