@@ -299,8 +299,8 @@ async function initializeApp(){const {data:{session}}=await supabaseClient.auth.
     #appNoticePanel .notice-head{display:flex;align-items:center;gap:10px;padding:0 0 12px;margin:0 0 2px;border-bottom:1px solid #e6eee8}
     #appNoticePanel .notice-mark{display:grid;place-items:center;width:36px;height:36px;flex:none;border-radius:11px;background:#e5f2e8;font-size:18px}
     #appNoticePanel .notice-head strong{font-size:17px;line-height:1.4;letter-spacing:.02em}
-    #appNoticePanel [data-notice-list]{display:grid;gap:8px;padding-top:12px!important;min-width:0}
-    #appNoticePanel .notice-item{display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;white-space:normal!important;text-align:left!important;padding:12px!important;border:1px solid #e1e9e2!important;border-radius:12px!important;background:#fff!important;color:#24352f!important;line-height:1.6!important;overflow-wrap:anywhere!important;word-break:normal!important}
+    #appNoticePanel [data-notice-list]{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:8px;padding-top:12px!important;min-width:0;width:100%}
+    #appNoticePanel .notice-item{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;width:100%!important;max-width:100%!important;height:auto!important;min-height:0!important;flex:none!important;box-sizing:border-box!important;white-space:normal!important;text-align:left!important;padding:12px!important;border:1px solid #e1e9e2!important;border-radius:12px!important;background:#fff!important;color:#24352f!important;line-height:1.6!important;overflow-wrap:anywhere!important;word-break:normal!important}
     #appNoticePanel .notice-item.is-unread{background:#eff7f1!important;border-color:#c9dfcf!important}
     #appNoticePanel .notice-item:hover{border-color:#aecbb6!important;box-shadow:0 3px 10px rgba(32,69,46,.08)}
     #appNoticePanel .notice-title{display:block;font-size:14px;line-height:1.5;font-weight:700;white-space:normal;overflow-wrap:anywhere}
