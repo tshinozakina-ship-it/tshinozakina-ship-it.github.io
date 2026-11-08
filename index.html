@@ -1705,6 +1705,9 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
    }
    if(group.items.some(item=>item.row.cells[5]?.querySelector('[data-shuttle-confirm-print]')))actions.appendChild(button('シャトルバス手配確認書を印刷・PDF保存',{shuttleConfirmPrint:ids[0],...actionIds}));
    actions.appendChild(button('チャット',{chat:ids[0]}));
+   const batchOrders=ids.map(id=>orders.find(order=>String(order.id)===id));
+   const canCompleteBatch=role.value==='バス会社'&&appRole==='バス会社'&&batchOrders.every(order=>order&&['arrange','done'].includes(order.status))&&batchOrders.some(order=>order.status==='arrange');
+   if(canCompleteBatch)actions.appendChild(button('運行完了（2台分）',{completeShuttleBatch:ids.join(',')},'primary'));
    if(role.value==='運行管理スタッフ'&&appRole==='運行管理スタッフ')actions.appendChild(button('シャトルバス依頼を削除（2台分）',{adminDeleteBatch:ids.join(',')}));
    const units=card.querySelector('.shuttle-batch-units');
    for(const item of group.items){
@@ -1728,6 +1731,25 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
   b.disabled=true;const {data,error}=await supabaseClient.from('transport_requests').delete().in('id',ids).select('id');
   if(error||!data||data.length!==ids.length){b.disabled=false;toast('2台分の依頼を削除できませんでした。'+(error?.message||''));return}
   await wedriveLoadShared(true);render();toast('シャトルバスの依頼2台分を削除しました。');
+ });
+ document.addEventListener('click',async event=>{
+  const b=event.target instanceof Element?event.target.closest('[data-complete-shuttle-batch]'):null;if(!b)return;
+  event.preventDefault();event.stopPropagation();
+  if(role.value!=='バス会社'||appRole!=='バス会社'){toast('受注したバス会社の画面から操作してください');return}
+  const ids=b.dataset.completeShuttleBatch.split(',').filter(Boolean),batch=ids.map(id=>orders.find(order=>String(order.id)===id));
+  if(ids.length!==2||batch.some(order=>!order||!['arrange','done'].includes(order.status))){toast('完了対象を確認できません。依頼一覧を更新してください');return}
+  const remaining=batch.filter(order=>order.status==='arrange');
+  if(!remaining.length){toast('この依頼はすでに運行完了しています');return}
+  if(!confirm('シャトルバス2台分の運行を完了にします。よろしいですか？'))return;
+  b.disabled=true;let completed=0,failed=null;
+  for(const order of remaining){
+   const {error}=await supabaseClient.rpc('wedrive_complete_request',{p_request_id:order.id});
+   if(error){failed=error;break}
+   completed++;
+  }
+  await wedriveLoadShared(true);render();
+  if(failed){toast(completed+'台分を完了しました。残りは未完了です。もう一度お試しください。'+(failed.message||''));return}
+  toast('シャトルバス2台分の運行を完了しました');
  });
 })();
 </script>
