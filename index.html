@@ -1703,7 +1703,7 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
    const ids=group.items.map(item=>String(item.row.dataset.orderId||''));if(ids.some(id=>!id))continue;
    const groupedRow=document.createElement('tr');groupedRow.className='shuttle-batch-row';groupedRow.dataset.shuttleBatchGrouped='true';groupedRow.dataset.orderId=ids[0];groupedRow.dataset.shuttleBatchIds=ids.join(',');
    const cell=document.createElement('td');cell.colSpan=6;const card=document.createElement('section');card.className='shuttle-batch-card';
-   card.innerHTML='<div class="shuttle-batch-head"><strong>シャトルバス　2台分</strong><span class="shuttle-batch-common">'+esc(group.info.venue)+' ・ '+esc(group.info.dateAndTime)+'</span><span class="shuttle-batch-common">'+esc(group.info.route)+'</span></div><div class="shuttle-batch-actions"></div><div class="shuttle-batch-units"></div><small class="shuttle-batch-help">依頼・受注・確認書は一件にまとめています。乗務員の手配は各台ごとに行います。</small>';
+   card.innerHTML='<div class="shuttle-batch-head"><strong>シャトルバス　2台分</strong><span class="shuttle-batch-common">'+esc(group.info.venue)+' ・ '+esc(String(group.info.dateAndTime||'').replace(/\s*\d{1,2}:\d{2}.*/,'').trim())+'</span><span class="shuttle-batch-common">'+esc(group.info.route)+'</span></div><div class="shuttle-batch-actions"></div><div class="shuttle-batch-units"></div><small class="shuttle-batch-help">依頼・受注・確認書は一件にまとめています。乗務員の手配は各台ごとに行います。</small>';
    const actions=card.querySelector('.shuttle-batch-actions'),firstRow=group.items[0].row,firstActions=firstRow.cells[5],actionIds={shuttleBatchIds:ids.join(',')};
    actions.appendChild(button('依頼内容を確認・受注する',{details:ids[0],...actionIds}));
    if(group.items.some(item=>item.row.cells[5]?.querySelector('[data-order-document]'))){
