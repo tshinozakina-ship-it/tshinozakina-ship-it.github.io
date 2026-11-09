@@ -1723,7 +1723,7 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
    const units=card.querySelector('.shuttle-batch-units');
    for(const item of group.items){
     const unit=document.createElement('div');unit.className='shuttle-batch-unit';unit.dataset.unitOrderId=String(item.row.dataset.orderId||'');
-    const status=item.row.cells[4]?.innerHTML||'',details=orders.find(o=>String(o.id)===String(item.row.dataset.orderId)),unitNotes=String(details?.requirements||''),unitRange=(unitNotes.match(/運行時間：([^\r\n]+)/)||[])[1]||((details?.time||'')+'～'+(details?.arrivalTime||'')),unitDuration=(unitNotes.match(/利用時間：([^\\r\\n]+)/)||[])[1]||'';
+    const status=item.row.cells[4]?.innerHTML||'',details=orders.find(o=>String(o.id)===String(item.row.dataset.orderId)),unitNotes=String(details?.requirements||''),unitRange=(unitNotes.match(/運行時間：([^\r\n]+)/)||[])[1]||((details?.time||'')+'～'+(details?.arrivalTime||'')),unitDuration=(unitNotes.match(/利用時間：([^\r\n]+)/)||[])[1]||'';
     unit.innerHTML='<div class="shuttle-batch-unit-head"><strong>'+item.slot+'台目</strong><span>'+esc(unitRange)+(unitDuration?'（'+esc(unitDuration)+'）':'')+'</span><span>'+status+'</span></div><div class="shuttle-batch-unit-actions"></div>';
     const unitActions=unit.querySelector('.shuttle-batch-unit-actions');
     unitActions.innerHTML='<span class="muted">乗務員名は当日のチャットで共有します</span>';
