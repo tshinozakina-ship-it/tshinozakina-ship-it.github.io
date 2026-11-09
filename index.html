@@ -1715,7 +1715,7 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
    const batchOrders=ids.map(id=>orders.find(order=>String(order.id)===id));
    const canCompleteBatch=role.value==='バス会社'&&appRole==='バス会社'&&batchOrders.every(order=>order&&['accepted','arrange','done'].includes(order.status))&&batchOrders.some(order=>order.status==='accepted'||order.status==='arrange');
    if(canCompleteBatch){const completeButton=button('運行完了（2台分）',{completeShuttleBatch:ids.join(',')},'primary');actions.appendChild(completeButton)}
-   if(role.value==='運行管理スタッフ'&&appRole==='運行管理スタッフ')actions.appendChild(button('シャトルバス依頼を削除（2台分）',{adminDeleteBatch:ids.join(',')}));
+
    const units=card.querySelector('.shuttle-batch-units');
    for(const item of group.items){
     const unit=document.createElement('div');unit.className='shuttle-batch-unit';unit.dataset.unitOrderId=String(item.row.dataset.orderId||'');
@@ -1723,12 +1723,34 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
     unit.innerHTML='<div class="shuttle-batch-unit-head"><strong>'+item.slot+'台目</strong><span>'+esc(unitRange)+(unitDuration?'（'+esc(unitDuration)+'）':'')+'</span><span>'+status+'</span></div><div class="shuttle-batch-unit-actions"></div>';
     const unitActions=unit.querySelector('.shuttle-batch-unit-actions');
     unitActions.innerHTML='<span class="muted">乗務員名は当日のチャットで共有します</span>';
+    if(role.value==='運行管理スタッフ'&&appRole==='運行管理スタッフ'){const deleteUnit=button(item.slot+'台目を削除',{adminDeleteShuttleUnit:String(details?.id||''),shuttleBatchIds:ids.join(',')});deleteUnit.style.cssText='color:#9b3828;border:1px solid #d89b91;background:#fff7f5;font-weight:700';unitActions.appendChild(deleteUnit)}
     units.appendChild(unit);
    }
    cell.appendChild(card);groupedRow.appendChild(cell);const before=group.items[0].row;before.parentNode.insertBefore(groupedRow,before);group.items.forEach(item=>item.row.remove());
   }
  }
  const observer=new MutationObserver(()=>window.setTimeout(groupRows,0));observer.observe(body,{childList:true});window.setTimeout(groupRows,0);
+ document.addEventListener('click',async event=>{
+  const b=event.target instanceof Element?event.target.closest('[data-admin-delete-shuttle-unit]'):null;if(!b)return;
+  event.preventDefault();event.stopPropagation();
+  if(role.value!=='運行管理スタッフ'||appRole!=='運行管理スタッフ'){toast('運行管理スタッフのみ削除できます');return}
+  const id=b.dataset.adminDeleteShuttleUnit,ids=(b.dataset.shuttleBatchIds||'').split(',').filter(Boolean),survivorId=ids.find(value=>value!==id),unit=b.closest('.shuttle-batch-unit'),unitName=unit?.querySelector('.shuttle-batch-unit-head strong')?.textContent||'選択した台';
+  if(ids.length!==2||!id||!survivorId){toast('削除対象を確認できません');return}
+  const survivor=orders.find(order=>String(order.id)===survivorId),originalRequirements=String(survivor?.requirements||'');
+  if(!survivor||! /発注台数：\d+台/.test(originalRequirements)||! /車両番号：\d+\/\d+台/.test(originalRequirements)){toast('残る依頼の台数情報を確認できないため削除できません');return}
+  const updatedRequirements=originalRequirements.replace(/発注台数：\d+台/,'発注台数：1台').replace(/車両番号：\d+\/\d+台/,'車両番号：1/1台');
+  if(!confirm(unitName+'の依頼だけを削除します。残る依頼は1台分に変更されます。削除後は元に戻せません。よろしいですか？'))return;
+  b.disabled=true;
+  const {data:updated,error:updateError}=await supabaseClient.from('transport_requests').update({requirements:updatedRequirements}).eq('id',survivorId).select('id');
+  if(updateError||!updated||updated.length!==1){b.disabled=false;toast('残る依頼を1台分に更新できなかったため、削除していません。'+(updateError?.message||''));return}
+  const {data:deleted,error:deleteError}=await supabaseClient.from('transport_requests').delete().eq('id',id).select('id');
+  if(deleteError||!deleted||deleted.length!==1){
+   const {error:rollbackError}=await supabaseClient.from('transport_requests').update({requirements:originalRequirements}).eq('id',survivorId);
+   b.disabled=false;toast('選んだ台を削除できませんでした。'+(deleteError?.message||'')+(rollbackError?' 残る依頼の情報も元に戻せませんでした。管理者に確認してください.':''));
+   return
+  }
+  await wedriveLoadShared(true);render();toast(unitName+'の依頼を削除しました。残りは1台分です。');
+ });
  document.addEventListener('click',async event=>{
   const b=event.target instanceof Element?event.target.closest('[data-admin-delete-batch]'):null;if(!b)return;
   event.preventDefault();event.stopPropagation();
