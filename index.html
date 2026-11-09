@@ -1723,7 +1723,7 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
     unit.innerHTML='<div class="shuttle-batch-unit-head"><strong>'+item.slot+'台目</strong><span>'+esc(unitRange)+(unitDuration?'（'+esc(unitDuration)+'）':'')+'</span><span>'+status+'</span></div><div class="shuttle-batch-unit-actions"></div>';
     const unitActions=unit.querySelector('.shuttle-batch-unit-actions');
     unitActions.innerHTML='<span class="muted">乗務員名は当日のチャットで共有します</span>';
-    if(role.value==='運行管理スタッフ'&&appRole==='運行管理スタッフ'){const deleteUnit=button(item.slot+'台目を削除',{adminDeleteShuttleUnit:String(details?.id||''),shuttleBatchIds:ids.join(',')});deleteUnit.style.cssText='color:#9b3828;border:1px solid #d89b91;background:#fff7f5;font-weight:700';unitActions.appendChild(deleteUnit)}
+    if(role.value==='運行管理スタッフ'&&appRole==='運行管理スタッフ'){const deleteUnit=button(item.slot+'台目を削除',{adminDeleteShuttleUnit:String(details?.id||''),shuttleBatchIds:ids.join(',')});deleteUnit.style.cssText='color:#a7372b!important;border:1px solid #e6b4ad!important;background:#fff0ee!important;font-weight:700!important';unitActions.appendChild(deleteUnit)}
     units.appendChild(unit);
    }
    cell.appendChild(card);groupedRow.appendChild(cell);const before=group.items[0].row;before.parentNode.insertBefore(groupedRow,before);group.items.forEach(item=>item.row.remove());
