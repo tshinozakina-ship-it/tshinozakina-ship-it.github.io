@@ -92,102 +92,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 <style id="wedrive-shuttle-complete-button-size">body #ordersBody .shuttle-batch-actions>button[data-complete-shuttle-batch]{width:100%!important;max-width:100%!important;height:60px!important;min-height:60px!important;max-height:60px!important;grid-column:auto!important;box-sizing:border-box!important}@media(max-width:720px){body #ordersBody .shuttle-batch-actions>button[data-complete-shuttle-batch]{width:50%!important;max-width:50%!important}}</style>
 <style id="wedrive-desktop-login-map-button-balance">@media(min-width:1001px){#authPanel #loginBtn{display:block!important;width:50%!important;max-width:300px!important;height:54px!important;min-height:54px!important;max-height:54px!important;margin:12px auto 0!important;font-size:16px!important;padding:10px 16px!important}body #openGpsMap{flex:0 0 auto!important;width:auto!important;min-width:210px!important;max-width:240px!important;height:50px!important;min-height:50px!important;max-height:50px!important;padding:10px 16px!important;font-size:15px!important;white-space:normal!important;line-height:1.3!important}}</style>
 <style id="wedrive-shuttle-duration-unit">.shuttle-duration-summary{padding:12px 14px;border:1px solid #cbded0;border-radius:8px;background:#eef5f0;color:#245b43;font-weight:700;line-height:1.5}@media(max-width:1000px){.shuttle-duration-summary{font-size:15px}}</style>
-<style id="wedrive-single-shuttle-desktop-card">
-@media (min-width:1001px) {
-  #ordersBody > tr.shuttle-order-row {
-    display:grid;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-    gap:4px 16px;
-    margin:12px 0;
-    padding:12px 16px;
-    border:1px solid #9ab9a6;
-    border-radius:14px;
-    background:#f7fbf8;
-    overflow:hidden;
-  }
-  #ordersBody > tr.shuttle-order-row > td {
-    display:block;
-    min-width:0;
-    padding:8px 4px;
-    border:0;
-    background:transparent;
-    white-space:normal;
-    overflow-wrap:anywhere;
-    font-size:14px;
-    line-height:1.55;
-  }
-  #ordersBody > tr.shuttle-order-row > td:first-child {
-    grid-column:1 / -1;
-    padding:4px 2px 12px;
-    border-bottom:1px solid #d6e4da;
-  }
-  #ordersBody > tr.shuttle-order-row > td:first-child::before {
-    content:"シャトルバス　1台分";
-    display:inline-flex;
-    align-items:center;
-    max-width:100%;
-    box-sizing:border-box;
-    margin:0 0 8px;
-    padding:8px 14px;
-    border-left:5px solid #2f7654;
-    border-radius:8px;
-    background:#e6f3eb;
-    color:#20583f;
-    font-size:22px;
-    font-weight:800;
-    line-height:1.35;
-  }
-  #ordersBody > tr.shuttle-order-row .venue {
-    display:block;
-    font-size:19px;
-    line-height:1.4;
-  }
-  #ordersBody > tr.shuttle-order-row .order-id {
-    margin-top:4px;
-    overflow-wrap:anywhere;
-  }
-  #ordersBody > tr.shuttle-order-row .shuttle-order-tag {
-    display:inline-block;
-    margin:7px 0 0;
-    padding:5px 9px;
-    border:1px solid #d6e4da;
-    background:#fff;
-  }
-  #ordersBody > tr.shuttle-order-row > td:nth-child(2),
-  #ordersBody > tr.shuttle-order-row > td:nth-child(3) {
-    grid-column:1 / -1;
-    border-bottom:1px solid #e1ebe4;
-  }
-  #ordersBody > tr.shuttle-order-row > td:nth-child(2)::before { content:"運行日・時間　"; }
-  #ordersBody > tr.shuttle-order-row > td:nth-child(3)::before { content:"運行区間・車種　"; }
-  #ordersBody > tr.shuttle-order-row > td:nth-child(4)::before { content:"乗車予定人数　"; }
-  #ordersBody > tr.shuttle-order-row > td:nth-child(5)::before { content:"状況　"; }
-  #ordersBody > tr.shuttle-order-row > td:nth-child(2)::before,
-  #ordersBody > tr.shuttle-order-row > td:nth-child(3)::before,
-  #ordersBody > tr.shuttle-order-row > td:nth-child(4)::before,
-  #ordersBody > tr.shuttle-order-row > td:nth-child(5)::before {
-    color:#53645a;
-    font-size:12px;
-    font-weight:700;
-  }
-  #ordersBody > tr.shuttle-order-row > td:nth-child(6) {
-    grid-column:1 / -1;
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:8px;
-    padding:12px 0 2px;
-    border-top:1px solid #d6e4da;
-  }
-  #ordersBody > tr.shuttle-order-row > td:nth-child(6) > button {
-    width:100%;
-    min-width:0;
-    min-height:60px;
-    white-space:normal;
-    overflow-wrap:anywhere;
-    font-size:15px;
-  }
-}
-</style>
+
 </head>
 <body>
 <div id="authPanel" style="position:fixed;inset:0;background:#f7f8f5;z-index:9999;display:flex;align-items:center;justify-content:center;">
@@ -503,7 +408,7 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
  async function openChat(requestId){const found=orders.find(o=>String(o.id)===String(requestId));if(!found)return;if(role.value==='バス会社'&&found.status!=='pending'&&!found.assignment){toast('この依頼のチャットには参加できません');return}active=found;lastMessageId=null;setTitle(found);thread.textContent='読み込み中…';backdrop.classList.add('show');void markChatNoticesRead(found.id);await loadMessages();if(poll)clearInterval(poll);poll=setInterval(()=>{if(backdrop.classList.contains('show'))void loadMessages()},5000);input.focus()}
  backdrop.addEventListener('click',e=>{if(e.target===backdrop||e.target.closest('[data-chat-close]'))closeChat()});
  form.addEventListener('submit',async e=>{e.preventDefault();if(!active||!appUser)return;const body=input.value.trim();if(!body)return;const button=form.querySelector('button[type="submit"]');button.disabled=true;const {error}=await supabaseClient.from('request_messages').insert({request_id:active.id,sender_id:appUser.id,body});button.disabled=false;if(error){console.error(error);toast('メッセージを送れませんでした。参加権限と接続をご確認ください。');return}input.value='';lastMessageId=null;await loadMessages();void refreshChatBadges()});
- async function refreshChatBadges(){if(!appUser||unreadBusy)return;unreadBusy=true;const {data,error}=await supabaseClient.from('notifications').select('request_id').eq('user_id',appUser.id).eq('title',notificationTitle).eq('is_read',false);unreadBusy=false;if(error){console.warn(error);return}const counts=new Map();for(const n of data||[])counts.set(String(n.request_id),(counts.get(String(n.request_id))||0)+1);const total=[...counts.values()].reduce((sum,count)=>sum+count,0);if(total>0&&(previousUnreadTotal===null||total>previousUnreadTotal))toast('依頼チャットに新着メッセージがあります。該当依頼の「チャット」をご確認ください。');previousUnreadTotal=total;document.querySelectorAll('#ordersBody tr[data-order-id]').forEach(row=>{const grouped=row.dataset.shuttleBatchGrouped==='true';const targets=grouped?Array.from(row.querySelectorAll('.shuttle-batch-unit')).map(unit=>({container:unit.querySelector('.shuttle-batch-unit-actions'),requestId:unit.dataset.unitOrderId})): [{container:row.lastElementChild,requestId:row.dataset.orderId}];targets.forEach(({container,requestId})=>{if(!container)return;container.querySelectorAll('[data-chat]').forEach(x=>x.remove());const o=orders.find(item=>String(item.id)===String(requestId));if(!o||!appUser)return;if(role.value==='バス会社'&&o.status!=='pending'&&!o.assignment)return;const button=document.createElement('button');button.type='button';button.className='action';button.dataset.chat=String(o.id);const unread=counts.get(String(o.id))||0;button.append(document.createTextNode('チャット'));if(unread){const badge=document.createElement('span');badge.className='chat-unread';badge.textContent='新着 '+(unread>9?'9+':String(unread));button.appendChild(badge)}container.appendChild(button);const deleteUnit=container.querySelector('[data-admin-delete-shuttle-unit]');if(deleteUnit)button.after(deleteUnit)})})}
+ async function refreshChatBadges(){if(!appUser||unreadBusy)return;unreadBusy=true;const {data,error}=await supabaseClient.from('notifications').select('request_id').eq('user_id',appUser.id).eq('title',notificationTitle).eq('is_read',false);unreadBusy=false;if(error){console.warn(error);return}const counts=new Map();for(const n of data||[])counts.set(String(n.request_id),(counts.get(String(n.request_id))||0)+1);const total=[...counts.values()].reduce((sum,count)=>sum+count,0);if(total>0&&(previousUnreadTotal===null||total>previousUnreadTotal))toast('依頼チャットに新着メッセージがあります。該当依頼の「チャット」をご確認ください。');previousUnreadTotal=total;document.querySelectorAll('#ordersBody tr[data-order-id]').forEach(row=>{const grouped=row.dataset.shuttleBatchGrouped==='true';const targets=grouped?Array.from(row.querySelectorAll('.shuttle-batch-unit')).map(unit=>({container:unit.querySelector('.shuttle-batch-unit-actions'),requestId:unit.dataset.unitOrderId})): [{container:row.lastElementChild,requestId:row.dataset.orderId}];targets.forEach(({container,requestId})=>{if(!container)return;container.querySelectorAll('[data-chat]').forEach(x=>x.remove());const o=orders.find(item=>String(item.id)===String(requestId));if(!o||!appUser)return;if(role.value==='バス会社'&&o.status!=='pending'&&!o.assignment)return;const button=document.createElement('button');button.type='button';button.className='action';button.dataset.chat=String(o.id);const unread=counts.get(String(o.id))||0;button.append(document.createTextNode('チャット'));if(unread){const badge=document.createElement('span');badge.className='chat-unread';badge.textContent='新着 '+(unread>9?'9+':String(unread));button.appendChild(badge)}container.appendChild(button);const deleteUnit=container.querySelector('[data-admin-delete-shuttle-unit], [data-admin-delete]');if(deleteUnit)button.after(deleteUnit)})})}
  const priorRender=render;render=function(){priorRender();setTimeout(()=>void refreshChatBadges(),0)};
  document.addEventListener('click',e=>{const button=e.target instanceof Element?e.target.closest('[data-chat]'):null;if(button){e.preventDefault();void openChat(button.dataset.chat)}});
  const originalLoad=wedriveLoadShared;wedriveLoadShared=async function(...args){const result=await originalLoad.apply(this,args);void refreshChatBadges();return result};
@@ -1775,7 +1680,7 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
  function parseRow(row){
   const tag=row.querySelector('.shuttle-order-tag');if(!tag)return null;
   const match=tag.textContent.trim().match(/シャトルバス\s*[・·]\s*(\d+)台目／合計(\d+)台\s*[・·]\s*(.*)/);if(!match)return null;
-  const slot=Number(match[1]),total=Number(match[2]);if(total!==2||slot<1||slot>total)return null;
+  const slot=Number(match[1]),total=Number(match[2]);if(![1,2].includes(total)||slot<1||slot>total)return null;
   const venue=row.cells[0]?.querySelector('.venue')?.textContent.trim()||'';
   const contactLine=row.cells[0]?.querySelector('.order-id')?.textContent.trim()||'';
   const contact=contactLine.includes('·')?contactLine.split('·').slice(1).join('·').trim():contactLine;
@@ -1794,32 +1699,46 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
   const rows=Array.from(body.children).filter(row=>row.tagName==='TR'&&!row.dataset.shuttleBatchGrouped),groups=new Map();
   for(const row of rows){const info=parseRow(row);if(!info)continue;if(!groups.has(info.key))groups.set(info.key,{info,items:[]});groups.get(info.key).items.push({row,slot:info.slot});}
   for(const group of groups.values()){
-   const uniqueSlots=new Set(group.items.map(item=>item.slot));if(group.items.length!==2||uniqueSlots.size!==2)continue;
-   group.items.sort((a,b)=>a.slot-b.slot);
-   const ids=group.items.map(item=>String(item.row.dataset.orderId||''));if(ids.some(id=>!id))continue;
+   const uniqueSlots=new Set(group.items.map(item=>item.slot)),isTwoUnit=group.items.length===2&&uniqueSlots.size===2,isOneUnit=group.items.length===1&&group.info.total===1&&group.items[0].slot===1;
+   if(!isTwoUnit&&!isOneUnit)continue;
+   if(isTwoUnit)group.items.sort((a,b)=>a.slot-b.slot);
+   const ids=group.items.map(item=>String(item.row.dataset.orderId||''));if(ids.some(id=>!id)||new Set(ids).size!==ids.length)continue;
    const groupedRow=document.createElement('tr');groupedRow.className='shuttle-batch-row';groupedRow.dataset.shuttleBatchGrouped='true';groupedRow.dataset.orderId=ids[0];groupedRow.dataset.shuttleBatchIds=ids.join(',');
    const cell=document.createElement('td');cell.colSpan=6;const card=document.createElement('section');card.className='shuttle-batch-card';
-   card.innerHTML='<div class="shuttle-batch-head"><strong>シャトルバス　2台分</strong><span class="shuttle-batch-common">'+esc(group.info.venue)+' ・ '+esc(String(group.info.dateAndTime||'').replace(/\s*\d{1,2}:\d{2}.*/,'').trim())+'</span><span class="shuttle-batch-common">'+esc(group.info.route)+'</span></div><div class="shuttle-batch-actions"></div><div class="shuttle-batch-units"></div><small class="shuttle-batch-help">依頼・受注・確認書は一件にまとめています。乗務員の手配は各台ごとに行います。</small>';
+   const help=group.info.total===2?'依頼・受注・確認書は一件にまとめています。乗務員の手配は各台ごとに行います。':'依頼・受注・確認書をこのカードで確認できます。';
+   card.innerHTML='<div class="shuttle-batch-head"><strong>シャトルバス　'+group.info.total+'台分</strong><span class="shuttle-batch-common shuttle-batch-venue"></span><span class="shuttle-batch-common">'+esc(String(group.info.dateAndTime||'').replace(/\\s*\\d{1,2}:\\d{2}.*/,'' ).trim())+'</span><span class="shuttle-batch-common">'+esc(group.info.route)+'</span></div><div class="shuttle-batch-actions"></div><div class="shuttle-batch-units"></div><small class="shuttle-batch-help">'+help+'</small>';
    const actions=card.querySelector('.shuttle-batch-actions'),firstRow=group.items[0].row,firstActions=firstRow.cells[5],actionIds={shuttleBatchIds:ids.join(',')};
-   actions.appendChild(button(role.value==='バス会社'?'依頼内容を確認・受注する':'依頼内容を確認',{details:ids[0],...actionIds}));
-   if(group.items.some(item=>item.row.cells[5]?.querySelector('[data-order-document]'))){
-    const order=orders.find(item=>String(item.id)===ids[0]),label=role.value==='バス会社'?(order?.status==='pending'?'シャトルバス依頼書を印刷・PDF保存':'シャトルバス受注書を印刷・PDF保存'):'シャトルバス受注確認書を印刷・PDF保存';
-    actions.appendChild(button(label,{orderDocument:ids[0],...actionIds}));
+   if(isTwoUnit){
+    actions.appendChild(button(role.value==='バス会社'?'依頼内容を確認・受注する':'依頼内容を確認',{details:ids[0],...actionIds}));
+    if(group.items.some(item=>item.row.cells[5]?.querySelector('[data-order-document]'))){
+     const order=orders.find(item=>String(item.id)===ids[0]),label=role.value==='バス会社'?(order?.status==='pending'?'シャトルバス依頼書を印刷・PDF保存':'シャトルバス受注書を印刷・PDF保存'):'シャトルバス受注確認書を印刷・PDF保存';
+     actions.appendChild(button(label,{orderDocument:ids[0],...actionIds}));
+    }
+    if(group.items.some(item=>item.row.cells[5]?.querySelector('[data-shuttle-confirm-print]')))actions.appendChild(button('シャトルバス手配確認書を印刷・PDF保存',{shuttleConfirmPrint:ids[0],...actionIds}));
+    actions.appendChild(button('チャット',{chat:ids[0]}));
+    const batchOrders=ids.map(id=>orders.find(order=>String(order.id)===id));
+    const canCompleteBatch=role.value==='バス会社'&&appRole==='バス会社'&&batchOrders.every(order=>order&&['accepted','arrange','done'].includes(order.status))&&batchOrders.some(order=>order.status==='accepted'||order.status==='arrange');
+    if(canCompleteBatch){const completeButton=button('運行完了（2台分）',{completeShuttleBatch:ids.join(',')},'primary');actions.appendChild(completeButton)}
    }
-   if(group.items.some(item=>item.row.cells[5]?.querySelector('[data-shuttle-confirm-print]')))actions.appendChild(button('シャトルバス手配確認書を印刷・PDF保存',{shuttleConfirmPrint:ids[0],...actionIds}));
-   actions.appendChild(button('チャット',{chat:ids[0]}));
-   const batchOrders=ids.map(id=>orders.find(order=>String(order.id)===id));
-   const canCompleteBatch=role.value==='バス会社'&&appRole==='バス会社'&&batchOrders.every(order=>order&&['accepted','arrange','done'].includes(order.status))&&batchOrders.some(order=>order.status==='accepted'||order.status==='arrange');
-   if(canCompleteBatch){const completeButton=button('運行完了（2台分）',{completeShuttleBatch:ids.join(',')},'primary');actions.appendChild(completeButton)}
-
    const units=card.querySelector('.shuttle-batch-units');
    for(const item of group.items){
     const unit=document.createElement('div');unit.className='shuttle-batch-unit';unit.dataset.unitOrderId=String(item.row.dataset.orderId||'');
-    const status=item.row.cells[4]?.innerHTML||'',details=orders.find(o=>String(o.id)===String(item.row.dataset.orderId)),unitNotes=String(details?.requirements||''),unitRange=(unitNotes.match(/運行時間：([^\r\n]+)/)||[])[1]||((details?.time||'')+'～'+(details?.arrivalTime||'')),unitDuration=(unitNotes.match(/利用時間：([^\r\n]+)/)||[])[1]||'';
+    const status=item.row.cells[4]?.innerHTML||'',details=orders.find(o=>String(o.id)===String(item.row.dataset.orderId)),unitNotes=String(details?.requirements||''),unitRange=(unitNotes.match(/運行時間：([^\\r\\n]+)/)||[])[1]||((details?.time||'')+'～'+(details?.arrivalTime||'')),unitDuration=(unitNotes.match(/利用時間：([^\\r\\n]+)/)||[])[1]||'';
     unit.innerHTML='<div class="shuttle-batch-unit-head"><strong>'+item.slot+'台目</strong><span>'+esc(unitRange)+(unitDuration?'（'+esc(unitDuration)+'）':'')+'</span><span>'+status+'</span></div><div class="shuttle-batch-unit-actions"></div>';
     const unitActions=unit.querySelector('.shuttle-batch-unit-actions');
     unitActions.innerHTML='<span class="muted">乗務員名は当日のチャットで共有します</span>';
-    if(role.value==='運行管理スタッフ'&&appRole==='運行管理スタッフ'){const deleteUnit=button(item.slot+'台目を削除',{adminDeleteShuttleUnit:String(details?.id||''),shuttleBatchIds:ids.join(',')});deleteUnit.style.cssText='color:#a7372b!important;border:1px solid #e6b4ad!important;background:#fff0ee!important;font-weight:700!important';unitActions.appendChild(deleteUnit)}
+    if(isTwoUnit&&role.value==='運行管理スタッフ'&&appRole==='運行管理スタッフ'){const deleteUnit=button(item.slot+'台目を削除',{adminDeleteShuttleUnit:String(details?.id||''),shuttleBatchIds:ids.join(',')});deleteUnit.style.cssText='color:#a7372b!important;border:1px solid #e6b4ad!important;background:#fff0ee!important;font-weight:700!important';unitActions.appendChild(deleteUnit)}
+    if(isOneUnit){
+     const sourceCell=item.row.cells[0],venue=sourceCell?.querySelector('.venue'),orderId=sourceCell?.querySelector('.order-id'),phoneList=item.row.querySelector('.wedrive-phone-list');
+     const venueSlot=card.querySelector('.shuttle-batch-venue');if(venue)venueSlot.appendChild(venue);
+     if(orderId)unit.appendChild(orderId);
+     if(phoneList)unitActions.appendChild(phoneList);
+     for(const child of Array.from(firstActions?.children||[])){
+      if(child===phoneList)continue;
+      if(child.matches?.('[data-chat],[data-admin-delete]')){unitActions.appendChild(child);continue}
+      actions.appendChild(child);
+     }
+    }
     units.appendChild(unit);
    }
    cell.appendChild(card);groupedRow.appendChild(cell);const before=group.items[0].row;before.parentNode.insertBefore(groupedRow,before);group.items.forEach(item=>item.row.remove());
