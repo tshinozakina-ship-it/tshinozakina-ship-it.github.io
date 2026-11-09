@@ -1705,7 +1705,7 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
    const cell=document.createElement('td');cell.colSpan=6;const card=document.createElement('section');card.className='shuttle-batch-card';
    card.innerHTML='<div class="shuttle-batch-head"><strong>シャトルバス　2台分</strong><span class="shuttle-batch-common">'+esc(group.info.venue)+' ・ '+esc(String(group.info.dateAndTime||'').replace(/\s*\d{1,2}:\d{2}.*/,'').trim())+'</span><span class="shuttle-batch-common">'+esc(group.info.route)+'</span></div><div class="shuttle-batch-actions"></div><div class="shuttle-batch-units"></div><small class="shuttle-batch-help">依頼・受注・確認書は一件にまとめています。乗務員の手配は各台ごとに行います。</small>';
    const actions=card.querySelector('.shuttle-batch-actions'),firstRow=group.items[0].row,firstActions=firstRow.cells[5],actionIds={shuttleBatchIds:ids.join(',')};
-   actions.appendChild(button('依頼内容を確認・受注する',{details:ids[0],...actionIds}));
+   actions.appendChild(button(role.value==='バス会社'?'依頼内容を確認・受注する':'依頼内容を確認',{details:ids[0],...actionIds}));
    if(group.items.some(item=>item.row.cells[5]?.querySelector('[data-order-document]'))){
     const order=orders.find(item=>String(item.id)===ids[0]),label=role.value==='バス会社'?(order?.status==='pending'?'シャトルバス依頼書を印刷・PDF保存':'シャトルバス受注書を印刷・PDF保存'):'シャトルバス受注確認書を印刷・PDF保存';
     actions.appendChild(button(label,{orderDocument:ids[0],...actionIds}));
