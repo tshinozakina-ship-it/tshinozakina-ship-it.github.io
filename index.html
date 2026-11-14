@@ -1712,6 +1712,7 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
    if(isTwoUnit)actions.appendChild(button(role.value==='バス会社'&&appRole==='バス会社'&&batchOrders.some(order=>order.status==='pending')?'依頼内容を確認・受注する':'依頼内容を確認',{details:ids[0],...actionIds}));
    if(role.value==='バス会社'&&appRole==='バス会社'&&allReceived)actions.appendChild(button('シャトルバス受注書を印刷・PDF保存',{orderDocument:ids[0],...actionIds}));
    else if(role.value==='運行管理スタッフ'&&appRole==='運行管理スタッフ'&&allReceived)actions.appendChild(button('シャトルバス手配確認書を印刷・PDF保存',{shuttleConfirmPrint:ids[0],...actionIds}));
+   if(role.value==='運行管理スタッフ'&&appRole==='運行管理スタッフ')actions.appendChild(button('シャトルバス発注確認書を印刷・PDF保存',{shuttleOrderConfirmPrint:ids[0],...actionIds}));
    if(isTwoUnit){
     actions.appendChild(button('チャット',{chat:ids[0]}));
     const canCompleteBatch=role.value==='バス会社'&&appRole==='バス会社'&&batchOrders.every(order=>['accepted','arrange','done'].includes(order.status))&&batchOrders.some(order=>order.status==='accepted'||order.status==='arrange');
@@ -1794,6 +1795,35 @@ button.primary,#newRequest,#newShuttleOrder,#openAdminResources,#openFleetInvent
   toast('シャトルバス2台分の運行を完了しました');
  });
 })();
+
+ document.addEventListener('click',event=>{
+  const button=event.target instanceof Element?event.target.closest('[data-shuttle-order-confirm-print]'):null;if(!button)return;
+  event.preventDefault();event.stopPropagation();
+  if(role.value!=='運行管理スタッフ'||appRole!=='運行管理スタッフ'){toast('運行管理スタッフのみ発注確認書を作成できます');return}
+  const ids=(button.dataset.shuttleBatchIds||button.dataset.shuttleOrderConfirmPrint||'').split(',').filter(Boolean);
+  const batch=ids.map(id=>orders.find(item=>String(item.id)===id)).filter(Boolean);
+  const order=batch[0],sheet=document.getElementById('wedrivePrintDocument');
+  if(!order||batch.length!==ids.length||!sheet){toast('発注内容を確認できませんでした。一覧を更新してください');return}
+  const notes=String(order.requirements||''),lines=notes.split(String.fromCharCode(10)).map(line=>line.trim()).filter(Boolean);
+  const route='小倉駅 ⇔ THE CENTRAL PARK KOKURA（CPK）';
+  const routeLine=(lines.find(line=>line.startsWith('運行区間：'))||'').replace('運行区間：','').trim()||route;
+  const meta=/^(【シャトルバス】|シャトル依頼ID：|運行区間：|運行時間：|利用時間：|発注台数：|車両番号：)/;
+  const notesText=lines.filter(line=>!meta.test(line)).join('　')||'特記事項なし';
+  const timeRows=batch.map((item,index)=>{
+   const unitNotes=String(item.requirements||'');
+   const time=(unitNotes.match(/運行時間：([^\r\n]+)/)||[])[1]||((item.time||'')+(item.arrivalTime?'～'+item.arrivalTime:''));
+   const duration=(unitNotes.match(/利用時間：([^\r\n]+)/)||[])[1]||'';
+   return '<tr><th>'+(index+1)+'台目</th><td>'+esc(time)+(duration?'（'+esc(duration)+'）':'')+'</td></tr>';
+  }).join('');
+  const orderDateRaw=order.createdAt||order.created_at||'',orderDate=orderDateRaw?new Date(orderDateRaw):null;
+  const orderedAt=orderDate&&Number.isFinite(orderDate.getTime())?orderDate.toLocaleString('ja-JP',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}):'記録なし';
+  const displayDate=String(order.date||'未設定'),company=String(order.company||'未設定'),venue=String(order.venue||'未設定');
+  const total=String(batch.length||1)+'台',issued=new Date().toLocaleDateString('ja-JP',{timeZone:'Asia/Tokyo',year:'numeric',month:'long',day:'numeric'});
+  sheet.innerHTML='<div class="sheet-head"><div class="sheet-no">発注番号：'+esc(ids.join('・'))+'</div><h1>シャトルバス発注確認書</h1><div class="sheet-owner">発行日：'+esc(issued)+'</div></div><p class="small-note" style="text-align:center;margin:0 0 4mm">運行管理スタッフ 発注控え</p><table class="sheet-table event-table"><tbody><tr><th>発注日時</th><td colspan="3">'+esc(orderedAt)+'</td></tr><tr><th>運行日</th><td>'+esc(displayDate)+'</td><th>発注先</th><td>'+esc(company)+'</td></tr><tr><th>式場・案件</th><td colspan="3">'+esc(venue)+'</td></tr><tr><th>運行区間</th><td colspan="3">'+esc(routeLine)+'</td></tr><tr><th>車種・台数</th><td colspan="3">マイクロバス　'+esc(total)+'</td></tr>'+timeRows+'<tr><th>要望・共有事項</th><td colspan="3">'+esc(notesText)+'</td></tr><tr><th>発注状況</th><td colspan="3">'+esc(order.status==='pending'?'受注確認待ち':order.status==='accepted'?'受注済み':order.status==='arrange'?'手配済み':order.status==='done'?'運行完了':'確認中')+'</td></tr></tbody></table>';
+  const previousTitle=document.title,filename='シャトルバス発注確認書_'+displayDate+'_'+ids.length+'台';
+  document.title=filename;const cleanup=()=>{sheet.style.display='none';document.title=previousTitle;window.removeEventListener('afterprint',cleanup)};
+  window.addEventListener('afterprint',cleanup);window.print();window.setTimeout(cleanup,1000);
+ });
 </script>
 <style id="wedrive-button-label-fit-final">
 body button:not(.bell):not(.close):not(.nav):not(.leaflet-control-zoom-in):not(.leaflet-control-zoom-out){height:auto!important;min-height:60px!important;max-height:none!important;min-width:0!important;box-sizing:border-box!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;line-height:1.35!important;padding-top:10px!important;padding-bottom:10px!important;font-size:clamp(14px,1em,18px)!important}
