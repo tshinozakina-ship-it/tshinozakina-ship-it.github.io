@@ -532,14 +532,30 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{if(session)setTimeout(we
 <script>
 (()=>{
   const toolbar=document.querySelector('.top-right');
-  if(!toolbar||document.getElementById('logoutBtn'))return;
-  const button=document.createElement('button');
-  button.id='logoutBtn';button.type='button';button.textContent='ログアウト';button.hidden=true;
-  button.style.cssText='border:1px solid #dce4dd;background:#fff;color:#315e4c;border-radius:8px;padding:10px 13px;min-height:42px;font-weight:700;white-space:nowrap';
-  toolbar.appendChild(button);
-  const sync=async()=>{const {data}=await supabaseClient.auth.getSession();button.hidden=!data.session;};
-  void sync();
-  supabaseClient.auth.onAuthStateChange((_event,session)=>{button.hidden=!session;});
+  if(!toolbar)return;
+  let button=document.getElementById('logoutBtn');
+  if(!button){
+    button=document.createElement('button');
+    button.id='logoutBtn';button.type='button';button.textContent='ログアウト';
+    toolbar.appendChild(button);
+  }
+  button.hidden=false;
+  button.removeAttribute('hidden');
+  button.style.setProperty('display','inline-flex','important');
+  button.style.setProperty('visibility','visible','important');
+  button.style.setProperty('align-items','center');
+  button.style.setProperty('justify-content','center');
+  button.style.setProperty('border','1px solid #dce4dd');
+  button.style.setProperty('background','#f2f4f6');
+  button.style.setProperty('color','#315e4c');
+  button.style.setProperty('border-radius','8px');
+  button.style.setProperty('padding','10px 13px');
+  button.style.setProperty('min-height','42px');
+  button.style.setProperty('min-width','94px');
+  button.style.setProperty('font-weight','700');
+  button.style.setProperty('white-space','nowrap');
+  if(button.dataset.logoutWired==='true')return;
+  button.dataset.logoutWired='true';
   button.onclick=async()=>{button.disabled=true;const {error}=await supabaseClient.auth.signOut();if(error){button.disabled=false;alert('ログアウトできませんでした。もう一度お試しください。');return;}location.reload();};
 })();
 </script>
